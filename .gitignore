@@ -1,6 +1,7 @@
 TOKEN.py
 log.txt
 ghostdriver.log
+*.epub
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

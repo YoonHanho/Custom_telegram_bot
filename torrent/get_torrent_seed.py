@@ -41,6 +41,7 @@ def get_html_special_chars(program_name):
         return '%EC%8D%B0%EC%A0%84'
     elif(program_name == '무한도전'):
         return '%EB%AC%B4%ED%95%9C%EB%8F%84%EC%A0%84'
+    #return unicode(program_name, "utf-8")
 
 def program(bot, update):
     global program_name
@@ -120,8 +121,12 @@ def date(bot, update):
                 and re.search(program_name, title) \
                 and re.search(selected_date, title):
 
-            driver_torrent = webdriver.Firefox(executable_path="/usr/local/bin/geckodriver", firefox_profile=profile)
-            driver_torrent.get(target_address)
+            try:
+                driver_torrent = webdriver.Firefox(executable_path = "/usr/local/bin/geckodriver",
+                                               firefox_profile = profile)
+                driver_torrent.get(target_address)
+            except FileNotFoundError:
+                continue
 
             try:
                 element = driver_torrent.find_element_by_xpath("//table[@id='file_table']/tbody/tr[3]/td/a")
