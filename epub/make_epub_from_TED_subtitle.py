@@ -4,7 +4,7 @@ import logging
 import validators
 from bs4 import BeautifulSoup
 from urllib.request import (urlopen, HTTPError)
-from TOKEN import TOKEN
+from TOKEN import *
 from ebooklib import epub
 from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
@@ -12,7 +12,7 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, Rege
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    filename='./log.txt',
+                    filename=LOG_DIR + '/log.txt',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)

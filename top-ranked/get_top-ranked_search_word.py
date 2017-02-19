@@ -5,11 +5,11 @@ import re
 from telegram.ext import Updater, CommandHandler
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
-from TOKEN import TOKEN
+from TOKEN import *
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    filename='./log.txt',
+                    filename=LOG_DIR + '/log.txt',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)

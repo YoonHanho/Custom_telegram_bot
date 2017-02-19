@@ -14,15 +14,14 @@ from dateutil.parser import *
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from pyvirtualdisplay import Display
-from TOKEN import (TOKEN, RSA_KEY_LOCATION, DOWN_DIR, REMOTE_HOST, REMOTE_USER, REMOTE_DIR,
-        MANAGER_ID)
+from TOKEN import *
 from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
                           ConversationHandler)
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-#                    filename='./log.txt',
+                    filename=LOG_DIR + '/log.txt',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
@@ -31,6 +30,9 @@ PROGRAM, DATE = range(2)
 
 def start(bot, update):
     reply_keyboard = [['무한도전', '썰전']]
+
+    user = update.message.from_user
+    logger.info("%s(%s) started the bot." % (user.first_name, user.id))
 
     update.message.reply_text("I will download the torrent file.\nPlease select the program.",
         reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
@@ -164,7 +166,7 @@ def date(bot, update):
         update.message.reply_text('Done')
         logger.info('The torrent file is sent to %s' % user.first_name)
 
-        if(update.message.chat_id == MANAGER_ID):
+        if((update.message.chat_id == MANAGER_ID) or (update.message.chat_id == MANAGER2_ID)):
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh.connect(REMOTE_HOST, username = REMOTE_USER, key_filename = RSA_KEY_LOCATION)
