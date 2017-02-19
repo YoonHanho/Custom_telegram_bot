@@ -9,6 +9,7 @@ import os
 import paramiko
 import shutil
 import glob
+from selenium.common.exceptions import NoAlertPresentException
 from dateutil.parser import *
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -21,7 +22,7 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, Rege
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    filename='./log.txt',
+#                    filename='./log.txt',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
@@ -41,7 +42,6 @@ def get_html_special_chars(program_name):
         return '%EC%8D%B0%EC%A0%84'
     elif(program_name == '무한도전'):
         return '%EB%AC%B4%ED%95%9C%EB%8F%84%EC%A0%84'
-    #return unicode(program_name, "utf-8")
 
 def program(bot, update):
     global program_name
@@ -76,20 +76,19 @@ def date(bot, update):
 
     try:
         date_in_format = parse(selected_date)
-        logger.info("Selectd date : %s" % date_in_format)
     except:
-        update.message.reply_text("The selected date is not valid.\nPlease start again by /start.")
+        update.message.reply_text("The date you selected is not valid.\nPlease start again by /start.")
         return ConversationHandler.END
 
     if(date_in_format > datetime.now()):
-        update.message.reply_text("The selected date is not valid.\nPlease start again by /start.")
+        update.message.reply_text("The date you selected is not the past.\nPlease start again by /start.")
         return ConversationHandler.END
 
+    logger.info("Selectd date : %s" % date_in_format)
+
     driver = webdriver.PhantomJS()
-    driver.get("https://www.google.co.kr/search?q="
-               + selected_program + "+" + selected_date
-               +"+720p+NEXT+torrent")
-    time.sleep(10)
+    driver.get('https://www.google.co.kr/webhp?hl=ko#q=' + selected_program + '+' + selected_date + '+720p+next+torrent&newwindow=1&hl=ko&tbs=li:1')
+    time.sleep(5)
     page_sources = driver.page_source
     driver.quit()
 
@@ -98,14 +97,14 @@ def date(bot, update):
     try:
         search_lists = bsObj.find("div",{"id":"ires"}).ol.children
     except AttributeError:
-        logger.info("Parsing error at searching in google")
-        update.message.reply_text('Please check the name and the date of the program.')
+        logger.info("Parsing error at searching in google(search_list)")
+        update.message.reply_text('Please contact to the administrator.')
         return ConversationHandler.END
 
-    profile = get_firefox_profile_for_autodownload()
     display = Display(visible=0, size=(800, 600))
     display.start()
 
+    profile = get_firefox_profile_for_autodownload()
     found = 0
 
     for search_item in search_lists:
@@ -113,20 +112,26 @@ def date(bot, update):
             target_address = search_item.find("div",{"class":"kv"}).cite.get_text()
             title = search_item.find("a").get_text()
         except AttributeError:
-            logger.info("Parsing error at searching in google")
-            update.message.reply_text('Please check the name and the date of the program.')
+            logger.info("Parsing error at searching in google(search_item)")
+            update.message.reply_text('Please contact to the administrator.')
             return ConversationHandler.END
 
         if re.search('torrentkim',target_address) \
-                and re.search(program_name, title) \
-                and re.search(selected_date, title):
+            and re.search(program_name, title) \
+            and re.search(selected_date, title):
+
+            driver_torrent = webdriver.Firefox(executable_path = "/usr/local/bin/geckodriver",
+                                               firefox_profile = profile)
+            driver_torrent.get(target_address)
+            logger.info("I am trying to connect to %s..." % target_address)
 
             try:
-                driver_torrent = webdriver.Firefox(executable_path = "/usr/local/bin/geckodriver",
-                                               firefox_profile = profile)
-                driver_torrent.get(target_address)
-            except FileNotFoundError:
-                continue
+                driver_torrent.switch_to.alert.accept()
+                logger.info('There is an alert for redirection.')
+            except NoAlertPresentException:
+                pass
+
+            time.sleep(10)
 
             try:
                 element = driver_torrent.find_element_by_xpath("//table[@id='file_table']/tbody/tr[3]/td/a")
@@ -141,6 +146,7 @@ def date(bot, update):
                 found = 1
                 break
             except:
+                logger.info('There is no proper torrent link in the site.')
                 pass
 
             driver_torrent.quit()
@@ -156,7 +162,7 @@ def date(bot, update):
 
         bot.sendDocument(chat_id=update.message.chat_id,document=open(new_file_name,'rb') )
         update.message.reply_text('Done')
-        logger.info('The torrent file is send to %s' % user.first_name)
+        logger.info('The torrent file is sent to %s' % user.first_name)
 
         if(update.message.chat_id == MANAGER_ID):
             ssh = paramiko.SSHClient()
@@ -166,10 +172,11 @@ def date(bot, update):
             sftp.put(new_file_name, REMOTE_DIR +'/' + program_name + selected_date + '.torrent')
             sftp.close()
             ssh.close()
-            logger.info('Torrent file is send to Kodi.')
+            logger.info('Torrent file is sent to Kodi.')
 
         os.remove(new_file_name)
     else:
+        logger.info('The file is not found.')
         update.message.reply_text("I couldn't find the torrent file.")
 
     return ConversationHandler.END
