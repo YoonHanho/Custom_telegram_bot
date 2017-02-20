@@ -3,7 +3,6 @@
 import re
 import time
 from datetime import datetime
-import pyvirtualdisplay
 import logging
 import os
 import paramiko
@@ -21,7 +20,7 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, Rege
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-#                    filename=LOG_DIR + '/log.txt',
+                    filename=LOG_DIR + '/log.txt',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
@@ -113,8 +112,6 @@ def date(bot, update):
         try:
             target_address = search_item.find("div",{"class":"kv"}).cite.get_text()
             title = search_item.find("a").get_text()
-            print(target_address)
-            print(title)
         except AttributeError:
             logger.info("Parsing error at searching in google(search_item)")
             update.message.reply_text('Please contact to the administrator.')
