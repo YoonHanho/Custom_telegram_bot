@@ -2,6 +2,7 @@
 
 import logging
 import validators
+import os
 from bs4 import BeautifulSoup
 from urllib.request import (urlopen, HTTPError)
 from TOKEN import *
@@ -107,8 +108,13 @@ def convert(bot, update):
     book.spine = ['nav', c1]
 
     # write to the file
-    epub.write_epub('ted.epub', book, {})
-    bot.sendDocument(chat_id=update.message.chat_id,document=open('ted.epub','rb') )
+    try:
+        os.remove(LOG_DIR + '/ted.epub')
+    except FileNotFoundError:
+        pass
+
+    epub.write_epub(LOG_DIR + '/ted.epub', book, {})
+    bot.sendDocument(chat_id=update.message.chat_id,document=open(LOG_DIR + '/ted.epub','rb') )
 
     update.message.reply_text('The job is done. Please check the file.')
     logger.info("The job requested from User %s is done." % user.first_name)
