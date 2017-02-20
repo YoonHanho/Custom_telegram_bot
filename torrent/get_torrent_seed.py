@@ -21,7 +21,7 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, Rege
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    filename=LOG_DIR + '/log.txt',
+#                    filename=LOG_DIR + '/log.txt',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 PROGRAM, DATE = range(2)
 
 def start(bot, update):
-    reply_keyboard = [['무한도전', '썰전']]
+    reply_keyboard = [['무한도전', '썰전', '마이 리틀 텔레비전']]
 
     user = update.message.from_user
     logger.info("%s(%s) started the bot." % (user.first_name, user.id))
@@ -39,11 +39,13 @@ def start(bot, update):
 
     return PROGRAM
 
-def get_html_special_chars(program_name):
+def get_unicode_for_search(program_name):
     if(program_name == '썰전'):
         return '%EC%8D%B0%EC%A0%84'
     elif(program_name == '무한도전'):
         return '%EB%AC%B4%ED%95%9C%EB%8F%84%EC%A0%84'
+    elif(program_name =='마이 리틀 텔레비전'):
+        return '%EB%A7%88%EC%9D%B4+%EB%A6%AC%ED%8B%80+%ED%85%94%EB%A0%88%EB%B9%84%EC%A0%84'
 
 def program(bot, update):
     global program_name
@@ -52,8 +54,6 @@ def program(bot, update):
     program_name = update.message.text
     update.message.reply_text('You choose ' + program_name)
     logger.info("Selected program : %s" % program_name)
-
-    selected_program = get_html_special_chars(program_name)
 
     update.message.reply_text("Please select the date.\nex) 170209")
 
@@ -89,7 +89,7 @@ def date(bot, update):
     logger.info("Selectd date : %s" % date_in_format)
 
     driver = webdriver.PhantomJS()
-    driver.get('https://www.google.co.kr/webhp?hl=ko#q=' + selected_program + '+' + selected_date + '+720p+next+torrent&newwindow=1&hl=ko&tbs=li:1')
+    driver.get('https://www.google.co.kr/webhp?hl=ko#q=' + get_unicode_for_search(program_name) + '+' + selected_date + '+720p+next+torrent&newwindow=1&hl=ko&tbs=li:1')
     time.sleep(5)
     page_sources = driver.page_source
     driver.quit()
@@ -113,6 +113,8 @@ def date(bot, update):
         try:
             target_address = search_item.find("div",{"class":"kv"}).cite.get_text()
             title = search_item.find("a").get_text()
+            print(target_address)
+            print(title)
         except AttributeError:
             logger.info("Parsing error at searching in google(search_item)")
             update.message.reply_text('Please contact to the administrator.')
@@ -134,14 +136,15 @@ def date(bot, update):
                 pass
 
             time.sleep(10)
+            logger.info("torrent address : %s" % driver_torrent.current_url)
 
             try:
                 element = driver_torrent.find_element_by_xpath("//table[@id='file_table']/tbody/tr[3]/td/a")
+
                 logger.info(title)
-                logger.info("torrent address : %s" % target_address)
 
                 if(update.message.chat_id == MANAGER_ID):
-                    update.message.reply_text(target_address)
+                    update.message.reply_text(driver_torrent.current_url)
 
                 element.click()
                 time.sleep(10)
@@ -156,9 +159,14 @@ def date(bot, update):
     display.stop()
 
     if(found):
+        try:
+            os.remove(DOWN_DIR + '/*.torrent')
+        except FileNotFoundError:
+            pass
+
         new_file_name = DOWN_DIR + '/' + program_name + selected_date + '.torrent'
 
-        for torrent_file in glob.glob(DOWN_DIR + '/*' + selected_program + '*' + selected_date + '*.torrent'):
+        for torrent_file in glob.glob(DOWN_DIR + '/*' + selected_date + '*.torrent'):
             shutil.move(torrent_file, new_file_name)
             break
 
@@ -178,7 +186,7 @@ def date(bot, update):
 
         os.remove(new_file_name)
     else:
-        logger.info('The file is not found.')
+        logger.info('The proper torrent seed is not found.')
         update.message.reply_text("I couldn't find the torrent file.")
 
     return ConversationHandler.END
@@ -208,7 +216,7 @@ def main():
         entry_points=[CommandHandler('start', start)],
 
         states={
-            PROGRAM: [RegexHandler('^(썰전|무한도전)$', program)],
+            PROGRAM: [RegexHandler('^(썰전|무한도전|마이 리틀 텔레비전)$', program)],
 
             DATE: [MessageHandler(Filters.text, date)]
         },
