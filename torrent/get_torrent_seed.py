@@ -8,6 +8,8 @@ import os
 import paramiko
 import shutil
 import glob
+import urllib
+import urllib.parse
 from selenium.common.exceptions import NoAlertPresentException
 from dateutil.parser import *
 from bs4 import BeautifulSoup
@@ -37,14 +39,6 @@ def start(bot, update):
         reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
 
     return PROGRAM
-
-def get_unicode_for_search(program_name):
-    if(program_name == '썰전'):
-        return '%EC%8D%B0%EC%A0%84'
-    elif(program_name == '무한도전'):
-        return '%EB%AC%B4%ED%95%9C%EB%8F%84%EC%A0%84'
-    elif(program_name =='마이 리틀 텔레비전'):
-        return '%EB%A7%88%EC%9D%B4+%EB%A6%AC%ED%8B%80+%ED%85%94%EB%A0%88%EB%B9%84%EC%A0%84'
 
 def program(bot, update):
     global program_name
@@ -88,11 +82,13 @@ def date(bot, update):
     logger.info("Selectd date : %s" % date_in_format)
 
     driver = webdriver.PhantomJS()
-    search_address = 'https://www.google.co.kr/webhp?hl=ko#q=' \
-                     + get_unicode_for_search(program_name) + '+' + selected_date \
-                     + '+%ED%86%A0%EB%A0%8C%ED%8A%B8&newwindow=1&hl=ko&tbs=li:1'
-    logger.info("search_address = %s" % search_address)
-    driver.get(search_address)
+    query_string = program_name + ' ' + selected_date + ' 토렌트'
+    query_string = urllib.parse.quote_plus(query_string)
+    search_url = 'https://www.google.co.kr/webhp?hl=ko#q=' \
+                     + query_string \
+                     + '&newwindow=1&hl=ko&tbs=li:1'
+    logger.info("search_url = %s" % search_url)
+    driver.get(search_url)
     time.sleep(5)
     page_sources = driver.page_source
     driver.quit()
@@ -114,7 +110,7 @@ def date(bot, update):
 
     for search_item in search_lists:
         try:
-            target_address = search_item.find("div",{"class":"kv"}).cite.get_text()
+            target_url = search_item.find("div",{"class":"kv"}).cite.get_text()
             title = search_item.find("a").get_text()
         except AttributeError:
             logger.info("Parsing error at searching in google(search_item)")
@@ -122,15 +118,15 @@ def date(bot, update):
             return ConversationHandler.END
 
         logger.info("title = %s" % title)
-        logger.info("target = %s" % target_address)
-        if re.search('torrentkim',target_address) \
+        logger.info("target = %s" % target_url)
+        if re.search('torrentkim',target_url) \
             and re.search(program_name, title) \
             and re.search(selected_date, title):
 
             driver_torrent = webdriver.Firefox(executable_path = "/usr/local/bin/geckodriver",
                                                firefox_profile = profile)
-            driver_torrent.get(target_address)
-            logger.info("I am trying to connect to %s..." % target_address)
+            driver_torrent.get(target_url)
+            logger.info("I am trying to connect to %s..." % target_url)
 
             try:
                 driver_torrent.switch_to.alert.accept()
@@ -139,7 +135,7 @@ def date(bot, update):
                 pass
 
             time.sleep(10)
-            logger.info("torrent address : %s" % driver_torrent.current_url)
+            logger.info("torrent url : %s" % driver_torrent.current_url)
 
             try:
                 element = driver_torrent.find_element_by_xpath("//table[@id='file_table']/tbody/tr[3]/td/a")
