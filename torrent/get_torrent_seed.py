@@ -62,7 +62,7 @@ def get_firefox_profile_for_autodownload():
     profile = webdriver.FirefoxProfile()
     profile.set_preference("browser.download.folderList", 2)
     profile.set_preference("browser.download.manager.showWhenStarting", False)
-    profile.set_preference("browser.download.dir", '~')
+    profile.set_preference("browser.download.dir", DOWN_DIR)
     profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "file/unknown")
 
     return profile
@@ -88,7 +88,11 @@ def date(bot, update):
     logger.info("Selectd date : %s" % date_in_format)
 
     driver = webdriver.PhantomJS()
-    driver.get('https://www.google.co.kr/webhp?hl=ko#q=' + get_unicode_for_search(program_name) + '+' + selected_date + '+720p+next+torrent&newwindow=1&hl=ko&tbs=li:1')
+    search_address = 'https://www.google.co.kr/webhp?hl=ko#q=' \
+                     + get_unicode_for_search(program_name) + '+' + selected_date \
+                     + '+%ED%86%A0%EB%A0%8C%ED%8A%B8&newwindow=1&hl=ko&tbs=li:1'
+    logger.info("search_address = %s" % search_address)
+    driver.get(search_address)
     time.sleep(5)
     page_sources = driver.page_source
     driver.quit()
@@ -117,6 +121,8 @@ def date(bot, update):
             update.message.reply_text('Please contact to the administrator.')
             return ConversationHandler.END
 
+        logger.info("title = %s" % title)
+        logger.info("target = %s" % target_address)
         if re.search('torrentkim',target_address) \
             and re.search(program_name, title) \
             and re.search(selected_date, title):
