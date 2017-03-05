@@ -38,9 +38,8 @@ def get_rank_string(portal_site, bsObj):
 def start(bot, update):
     user = update.message.from_user
     logger.info("%s(%s) started the bot." % (user.first_name, user.id))
-    update.message.reply_text("Hello, I will let you know the top-ranked real-time search word \
-                              on Korean portals now.")
-    update.message.reply_text("The command is /first.")
+    update.message.reply_text("안녕하세요 각 포탈 사이트의 실시간 검색어 1위를 알려드립니다.")
+    update.message.reply_text("Command는 /first 입니다.")
 
 def first(bot, update):
     user = update.message.from_user
@@ -52,7 +51,7 @@ def first(bot, update):
 
         real_rank_item = get_rank_string(portal_site,bsObj)
 
-        update.message.reply_text("Top-ranked real-time search word on " + portal_site)
+        update.message.reply_text(portal_site + " 실시간 검색어 1위")
         real_rank_wo_whitespace = re.sub('\s+', '+', real_rank_item)
         html_tag = '<a href="' + query_address[portal_site] + real_rank_wo_whitespace + '">' + real_rank_item + '</a>'
         bot.sendMessage(parse_mode='HTML', chat_id=update.message.chat_id, text=html_tag)

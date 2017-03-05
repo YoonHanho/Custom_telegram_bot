@@ -23,15 +23,17 @@ CONVERT = range(1)
 def start(bot, update):
     user = update.message.from_user
     logger.info("%s(%s) started the bot." % (user.first_name, user.id))
-    update.message.reply_text("I will make an e-book from TED subtitle.\n \
-                              Please input the web address which includes the subtitle of TED.")
+    update.message.reply_text("TED 자막을 ebook(epub format)으로 변환해 드립니다. TED 자막 사이트의 URL을 알려주세요.")
+    update.message.reply_text('아래 예시를 참고하세요.')
+    update.message.reply_text('ex) http://www.ted.com/talks/ken_robinson_says_schools_kill_creativity/transcript?language=en',
+                              disable_web_page_preview=True)
     return CONVERT
 
 def print_example_and_retry(update):
-    update.message.reply_text('Please refer to the example below.')
+    update.message.reply_text('아래 예시를 참고하세요.')
     update.message.reply_text('ex) http://www.ted.com/talks/ken_robinson_says_schools_kill_creativity/transcript?language=en',
                               disable_web_page_preview=True)
-    update.message.reply_text('Please start again by /start')
+    update.message.reply_text('/start 부터 다시 시작해주세요.')
 
 
 def convert(bot, update):
@@ -41,7 +43,7 @@ def convert(bot, update):
     web_address = update.message.text
     logger.info("Web address : %s" % web_address)
     if not validators.url(web_address):
-        update.message.reply_text('It is not a valid web address.')
+        update.message.reply_text('Web 주소가 유효하지 않습니다.')
         print_example_and_retry(update)
         logger.info("This is not a web address.")
         return ConversationHandler.END
@@ -49,7 +51,7 @@ def convert(bot, update):
         try:
             page_src=urlopen(web_address)
         except HTTPError:
-            update.message.reply_text("I couldn't find the server you gave.")
+            update.message.reply_text("서버가 응답하지 않습니다.")
             print_example_and_retry(update)
             logger.info("The server don't respond.")
             return ConversationHandler.END
@@ -63,8 +65,7 @@ def convert(bot, update):
         authorObj = bsObj.find("h4",{"class":"talk-link__speaker"})
         paraObjs = bsObj.findAll("p",{"class":"talk-transcript__para"})
     except AttributeError:
-        update.message.reply_text('This is not a TED address.\n \
-                                  If it is, please contact to the administrator')
+        update.message.reply_text('적절한 TED 자막 사이트가 아닙니다. 혹시 맞다면 k11tos@nate.com 으로 알려주세요.')
         print_example_and_retry(update)
         logger.info("This is not a TED web address.")
         return ConversationHandler.END
@@ -116,21 +117,21 @@ def convert(bot, update):
     epub.write_epub(LOG_DIR + '/ted.epub', book, {})
     bot.sendDocument(chat_id=update.message.chat_id,document=open(LOG_DIR + '/ted.epub','rb') )
 
-    update.message.reply_text('The job is done. Please check the file.')
+    update.message.reply_text('변환이 완료되었습니다. 파일을 확인해주세요.')
     logger.info("The job requested from User %s is done." % user.first_name)
     return ConversationHandler.END
 
 def cancel(bot, update):
     user = update.message.from_user
     logger.info("User %s canceled the conversion." % user.first_name)
-    update.message.reply_text('The conversion is cancelled.',
+    update.message.reply_text('변환이 취소되었습니다.',
                               reply_markup=ReplyKeyboardRemove())
 
     return ConversationHandler.END
 
 
 def error(bot, update, error):
-    logger.warn('Update "%s" caused error "%s"' % (update, error))
+    logger.warning('Update "%s" caused error "%s"' % (update, error))
 
 def main():
     # Create the EventHandler and pass it your bot's token.
