@@ -142,10 +142,7 @@ def get_site_by_torrentkim(program_name, selected_date):
 
             target_url = urljoin(search_url, target_url)
             title = title.strip()
-            print(target_url)
-            print(title)
         except AttributeError:
-            print("error")
             continue
 
         valid_title_lists.append(title)
@@ -186,7 +183,8 @@ def date(bot, update):
     # (valid_title_lists, valid_url_lists) = get_site_by_Google(program_name, selected_date)
     (valid_title_lists, valid_url_lists) = get_site_by_torrentkim(program_name, selected_date)
     if valid_title_lists == False:
-        print("error")
+        logger.info('The proper torrent seed is not found.')
+        update.message.reply_text("토렌트 파일을 찾지 못했습니다.")
         return ConversationHandler.END
 
     for (title, target_url) in zip(valid_title_lists, valid_url_lists):
