@@ -10,6 +10,7 @@ import shutil
 import glob
 import urllib
 import urllib.parse
+from urllib.parse import urljoin
 from selenium.common.exceptions import NoAlertPresentException
 from dateutil.parser import *
 from bs4 import BeautifulSoup
@@ -31,7 +32,7 @@ PROGRAM, DATE = range(2)
 
 
 def start(bot, update):
-    reply_keyboard = [['무한도전', '썰전', '마이 리틀 텔레비전']]
+    reply_keyboard = [['무한도전', '썰전', '마이 리틀 텔레비전', '차이나는 클라스']]
 
     user = update.message.from_user
     logger.info("%s(%s) started the bot." % (user.first_name, user.id))
@@ -103,6 +104,59 @@ def get_site_by_Google(program_name, selected_date):
     return valid_title_lists, valid_url_lists
 
 
+def get_site_by_torrentkim(program_name, selected_date):
+    driver = webdriver.PhantomJS()
+    query_string = program_name + ' ' + selected_date
+    query_string = urllib.parse.quote_plus(query_string)
+    search_url = 'https://torrentkim5.net/bbs/s.php?k=' + query_string + '&b=&q='
+    logger.info("search_url = %s" % search_url)
+    driver.get(search_url)
+    time.sleep(5)
+    page_sources = driver.page_source
+    driver.quit()
+
+    bsobj = BeautifulSoup(page_sources, "html.parser")
+
+    valid_title_lists = []
+    valid_url_lists = []
+
+    tables = bsobj.findAll("tr", {"class": "bg1"})
+    lists = []
+    for table in tables:
+        lists.append(table.find("td",{"class":"subject"}))
+    search_lists = []
+    for list_item in lists:
+        items = list_item.findAll("a")
+        for item in items:
+            search_lists.append(item)
+
+    for search_item in search_lists:
+
+        if re.search('제휴사이트', search_item.get_text()) \
+                or re.search('예능', search_item.get_text()):
+            continue
+
+        try:
+            target_url = search_item.attrs['href']
+            title = search_item.get_text()
+
+            target_url = urljoin(search_url, target_url)
+            title = title.strip()
+            print(target_url)
+            print(title)
+        except AttributeError:
+            print("error")
+            continue
+
+        valid_title_lists.append(title)
+        valid_url_lists.append(target_url)
+
+    if len(valid_url_lists) == 0 or len(valid_title_lists) == 0:
+        return False, False
+    else:
+        return valid_title_lists, valid_url_lists
+
+
 def date(bot, update):
     global selected_program
     global selected_date
@@ -129,7 +183,11 @@ def date(bot, update):
     profile = get_firefox_profile_for_autodownload()
     found = 0
 
-    (valid_title_lists, valid_url_lists) = get_site_by_Google(program_name, selected_date)
+    # (valid_title_lists, valid_url_lists) = get_site_by_Google(program_name, selected_date)
+    (valid_title_lists, valid_url_lists) = get_site_by_torrentkim(program_name, selected_date)
+    if valid_title_lists == False:
+        print("error")
+        return ConversationHandler.END
 
     for (title, target_url) in zip(valid_title_lists, valid_url_lists):
 
@@ -232,7 +290,7 @@ def main():
         entry_points=[CommandHandler('start', start)],
 
         states={
-            PROGRAM: [RegexHandler('^(썰전|무한도전|마이 리틀 텔레비전)$', program)],
+            PROGRAM: [RegexHandler('^(썰전|무한도전|마이 리틀 텔레비전|차이나는 클라스)$', program)],
 
             DATE: [MessageHandler(Filters.text, date)]
         },

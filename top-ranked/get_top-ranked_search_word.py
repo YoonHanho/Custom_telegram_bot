@@ -6,6 +6,7 @@ from telegram.ext import Updater, CommandHandler
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 from TOKEN import *
+import urllib.parse
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -52,7 +53,7 @@ def first(bot, update):
         real_rank_item = get_rank_string(portal_site,bsObj)
 
         update.message.reply_text(portal_site + " 실시간 검색어 1위")
-        real_rank_wo_whitespace = re.sub('\s+', '+', real_rank_item)
+        real_rank_wo_whitespace = urllib.parse.quote_plus(real_rank_item)
         html_tag = '<a href="' + query_address[portal_site] + real_rank_wo_whitespace + '">' + real_rank_item + '</a>'
         bot.sendMessage(parse_mode='HTML', chat_id=update.message.chat_id, text=html_tag)
 
