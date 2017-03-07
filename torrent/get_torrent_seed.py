@@ -57,7 +57,9 @@ def program(bot, update):
 
 
 def get_firefox_profile_for_autodownload():
+
     profile = webdriver.FirefoxProfile()
+
     profile.set_preference("browser.download.folderList", 2)
     profile.set_preference("browser.download.manager.showWhenStarting", False)
     profile.set_preference("browser.download.dir", DOWN_DIR)
@@ -67,13 +69,14 @@ def get_firefox_profile_for_autodownload():
 
 
 def get_site_by_Google(program_name, selected_date):
+
     driver = webdriver.PhantomJS()
+
     query_string = program_name + ' ' + selected_date + ' 토렌트'
     query_string = urllib.parse.quote_plus(query_string)
-    search_url = 'https://www.google.co.kr/webhp?hl=ko#q=' \
-                 + query_string \
-                 + '&newwindow=1&hl=ko&tbs=li:1'
+    search_url = 'https://www.google.co.kr/webhp?hl=ko#q=' + query_string + '&newwindow=1&hl=ko&tbs=li:1'
     logger.info("search_url = %s" % search_url)
+
     driver.get(search_url)
     time.sleep(5)
     page_sources = driver.page_source
@@ -88,7 +91,7 @@ def get_site_by_Google(program_name, selected_date):
         search_lists = bsObj.find("div", {"id": "ires"}).ol.children
     except AttributeError:
         logger.info("Parsing error at searching in google(search_list)")
-        return False
+        return False, False
 
     for search_item in search_lists:
         try:
@@ -96,7 +99,7 @@ def get_site_by_Google(program_name, selected_date):
             title = search_item.find("a").get_text()
         except AttributeError:
             logger.info("Parsing error at searching in google(search_item)")
-            return False
+            return False, False
 
         valid_title_lists.append(title)
         valid_url_lists.append(target_url)
@@ -105,11 +108,14 @@ def get_site_by_Google(program_name, selected_date):
 
 
 def get_site_by_torrentkim(program_name, selected_date):
+
     driver = webdriver.PhantomJS()
+
     query_string = program_name + ' ' + selected_date
     query_string = urllib.parse.quote_plus(query_string)
     search_url = 'https://torrentkim5.net/bbs/s.php?k=' + query_string + '&b=&q='
     logger.info("search_url = %s" % search_url)
+
     driver.get(search_url)
     time.sleep(5)
     page_sources = driver.page_source
@@ -121,9 +127,11 @@ def get_site_by_torrentkim(program_name, selected_date):
     valid_url_lists = []
 
     tables = bsobj.findAll("tr", {"class": "bg1"})
+
     lists = []
     for table in tables:
         lists.append(table.find("td",{"class":"subject"}))
+
     search_lists = []
     for list_item in lists:
         items = list_item.findAll("a")
@@ -143,6 +151,7 @@ def get_site_by_torrentkim(program_name, selected_date):
             target_url = urljoin(search_url, target_url)
             title = title.strip()
         except AttributeError:
+            logger.info('It looks like there is no href in "a" tag.')
             continue
 
         valid_title_lists.append(title)
@@ -164,14 +173,13 @@ def date(bot, update):
 
     try:
         date_in_format = parse(selected_date)
+        if date_in_format > datetime.now():
+            raise ValueError
     except:
         update.message.reply_text("날짜를 잘못 입력하셨습니다. /start 부터 다시 시작해주세요.")
         return ConversationHandler.END
 
-    if date_in_format > datetime.now():
-        update.message.reply_text("입력하신 날짜가 지난 날짜가 아닙니다. /start 부터 다시 시작해주세요.")
-        return ConversationHandler.END
-
+    update.message.reply_text("선택하신 날짜는 " + str(date_in_format) + "입니다.")
     logger.info("Selected date : %s" % date_in_format)
 
     display = Display(visible=0, size=(800, 600))
