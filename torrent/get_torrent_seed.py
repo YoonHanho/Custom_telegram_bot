@@ -1,18 +1,19 @@
 #!/usr/bin/python3
 
 import re
+
 import time
-from datetime import datetime
+import datetime
+from dateutil.parser import parse
+
 import logging
 import os
 import paramiko
 import shutil
 import glob
-import urllib
 import urllib.parse
 from urllib.parse import urljoin
 from selenium.common.exceptions import NoAlertPresentException
-from dateutil.parser import *
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from pyvirtualdisplay import Display
@@ -101,8 +102,9 @@ def get_site_by_Google(program_name, selected_date):
             logger.info("Parsing error at searching in google(search_item)")
             return False, False
 
-        valid_title_lists.append(title)
-        valid_url_lists.append(target_url)
+        if re.search('torrentkim', target_url):
+            valid_title_lists.append(title)
+            valid_url_lists.append(target_url)
 
     return valid_title_lists, valid_url_lists
 
@@ -172,8 +174,9 @@ def date(bot, update):
     selected_date = update.message.text
 
     try:
-        date_in_format = parse(selected_date)
-        if date_in_format > datetime.now():
+        date_in_format = parse(selected_date).date()
+        today = datetime.date.today()
+        if date_in_format > today:
             raise ValueError
     except:
         update.message.reply_text("날짜를 잘못 입력하셨습니다. /start 부터 다시 시작해주세요.")
@@ -190,7 +193,7 @@ def date(bot, update):
 
     # (valid_title_lists, valid_url_lists) = get_site_by_Google(program_name, selected_date)
     (valid_title_lists, valid_url_lists) = get_site_by_torrentkim(program_name, selected_date)
-    if valid_title_lists == False:
+    if not valid_title_lists:
         logger.info('The proper torrent seed is not found.')
         update.message.reply_text("토렌트 파일을 찾지 못했습니다.")
         return ConversationHandler.END
@@ -199,9 +202,7 @@ def date(bot, update):
 
         logger.info("title = %s" % title)
         logger.info("target = %s" % target_url)
-        if re.search('torrentkim', target_url) \
-                and re.search(program_name, title) \
-                and re.search(selected_date, title):
+        if re.search(program_name, title) and re.search(selected_date, title):
 
             driver_torrent = webdriver.Firefox(executable_path="/usr/local/bin/geckodriver",
                                                firefox_profile=profile)
