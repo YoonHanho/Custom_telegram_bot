@@ -153,7 +153,7 @@ def get_site_by_torrentkim(program_name, selected_date):
             target_url = urljoin(search_url, target_url)
             title = title.strip()
         except AttributeError:
-            logger.info('It looks like there is no href in "a" tag.')
+            logger.warning('It looks like there is no href in "a" tag.')
             continue
 
         valid_title_lists.append(title)
@@ -183,6 +183,7 @@ def date(bot, update):
         return ConversationHandler.END
 
     update.message.reply_text("선택하신 날짜는 " + str(date_in_format) + "입니다.")
+    update.message.reply_text("잠시만 기다려주세요. 몇 분 정도 걸릴 수 있습니다.")
     logger.info("Selected date : %s" % date_in_format)
 
     display = Display(visible=0, size=(800, 600))
@@ -194,7 +195,7 @@ def date(bot, update):
     # (valid_title_lists, valid_url_lists) = get_site_by_Google(program_name, selected_date)
     (valid_title_lists, valid_url_lists) = get_site_by_torrentkim(program_name, selected_date)
     if not valid_title_lists:
-        logger.info('The proper torrent seed is not found.')
+        logger.warning('The proper torrent seed is not found.')
         update.message.reply_text("토렌트 파일을 찾지 못했습니다.")
         return ConversationHandler.END
 
@@ -231,7 +232,7 @@ def date(bot, update):
                 found = 1
                 break
             except:
-                logger.info('There is no proper torrent link in the site.')
+                logger.warning('There is no proper torrent link in the site.')
                 pass
 
             driver_torrent.quit()
@@ -266,7 +267,7 @@ def date(bot, update):
 
         os.remove(new_file_name)
     else:
-        logger.info('The proper torrent seed is not found.')
+        logger.warning('The proper torrent seed is not found.')
         update.message.reply_text("토렌트 파일을 찾지 못했습니다.")
 
     return ConversationHandler.END
