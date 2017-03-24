@@ -33,7 +33,7 @@ PROGRAM, DATE = range(2)
 
 
 def start(bot, update):
-    reply_keyboard = [['무한도전', '썰전', '마이 리틀 텔레비전', '차이나는 클라스']]
+    reply_keyboard = [['무한도전', '썰전', '마이 리틀 텔레비전', '차이나는 클라스', '라디오스타']]
 
     user = update.message.from_user
     logger.info("%s(%s) started the bot." % (user.first_name, user.id))
@@ -145,6 +145,12 @@ def get_site_by_torrentkim(program_name, selected_date):
         if re.search('제휴사이트', search_item.get_text()) \
                 or re.search('예능', search_item.get_text()):
             continue
+
+        try:
+            if search_item.attrs['style'] == "text-decoration:line-through":
+                continue
+        except KeyError:
+            pass
 
         try:
             target_url = search_item.attrs['href']
@@ -298,7 +304,7 @@ def main():
         entry_points=[CommandHandler('start', start)],
 
         states={
-            PROGRAM: [RegexHandler('^(썰전|무한도전|마이 리틀 텔레비전|차이나는 클라스)$', program)],
+            PROGRAM: [RegexHandler('^(썰전|무한도전|마이 리틀 텔레비전|차이나는 클라스|라디오스타)$', program)],
 
             DATE: [MessageHandler(Filters.text, date)]
         },
