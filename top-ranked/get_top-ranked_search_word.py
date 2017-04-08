@@ -33,7 +33,7 @@ def get_rank_string(portal_site, bsObj):
         try:
             #searching_word = bsObj.find("ol",{"id":"realrank"}).li.a.span.get_text()
             #2017.04.08
-            searching_word = bsObj.find("div",{"class":"section_navbar"}).find("ul",{"class":"ah_l"}).li.find("span",{"class":"ah_k"}).get_text()
+            searching_word = bsObj.find("ul",{"class":"ah_l"}).li.find("span",{"class":"ah_k"}).get_text()
             return searching_word
         except:
             logger.info("%s : parsing error" % portal_site)
