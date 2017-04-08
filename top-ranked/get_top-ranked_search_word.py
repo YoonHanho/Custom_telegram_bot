@@ -15,30 +15,28 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-address       = {'Daum' :'http://www.daum.net/',
-                 'Naver':'http://www.naver.com/'}
-query_address = {'Daum' :'http://search.daum.net/search?w=tot&q=',
-                 'Naver':'https://search.naver.com/search.naver?query='}
+address = {'Daum': 'http://www.daum.net/',
+           'Naver': 'http://www.naver.com/'}
+query_address = {'Daum': 'http://search.daum.net/search?w=tot&q=',
+                 'Naver': 'https://search.naver.com/search.naver?query='}
+
 
 def get_rank_string(portal_site, bsObj):
-    if(portal_site == 'Daum'):
-        try:
+    try:
+        if (portal_site == 'Daum'):
             # searching_word = bsObj.find("ol",{"id":"realTimeSearchWord"}).li.div.div.find("span",{"class":"txt_issue"}).a.strong.get_text()
-            #2017.04.08
-            searching_word = bsObj.find("ol",{"class":"list_hotissue"}).li.div.div.find("span",{"class":"txt_issue"}).a.get_text()
+            # 2017.04.08
+            searching_word = bsObj.find("ol", {"class": "list_hotissue"}).li.div.div.find("span", {
+                "class": "txt_issue"}).a.get_text()
             return searching_word
-        except:
-            logger.info("%s : parsing error" % portal_site)
-    elif(portal_site == 'Naver'):
-        try:
-            #searching_word = bsObj.find("ol",{"id":"realrank"}).li.a.span.get_text()
-            #2017.04.08
-            searching_word = bsObj.find("ul",{"class":"ah_l"}).li.find("span",{"class":"ah_k"}).get_text()
+        elif (portal_site == 'Naver'):
+            # searching_word = bsObj.find("ol",{"id":"realrank"}).li.a.span.get_text()
+            # 2017.04.08
+            searching_word = bsObj.find("ul", {"class": "ah_l"}).li.find("span", {"class": "ah_k"}).get_text()
             return searching_word
-        except:
-            logger.info("%s : parsing error" % portal_site)
+    except:
+        return None
 
-    return None
 
 def start(bot, update):
     user = update.message.from_user
@@ -46,23 +44,27 @@ def start(bot, update):
     update.message.reply_text("안녕하세요 각 포탈 사이트의 실시간 검색어 1위를 알려드립니다.")
     update.message.reply_text("Command는 /first 입니다.")
 
+
 def first(bot, update):
     user = update.message.from_user
     logger.info("%s(%s) wants the rank" % (user.first_name, user.id))
 
-    for portal_site in ['Daum','Naver']:
+    for portal_site in ['Daum', 'Naver']:
         page_src = urlopen(address[portal_site])
         bsObj = BeautifulSoup(page_src.read(), "html.parser")
 
-        real_rank_item = get_rank_string(portal_site,bsObj)
+        real_rank_item = get_rank_string(portal_site, bsObj)
 
         if real_rank_item is not None:
             update.message.reply_text(portal_site + " 실시간 검색어 1위")
             real_rank_wo_whitespace = urllib.parse.quote_plus(real_rank_item)
-            html_tag = '<a href="' + query_address[portal_site] + real_rank_wo_whitespace + '">' + real_rank_item + '</a>'
+            html_tag = '<a href="' + query_address[
+                portal_site] + real_rank_wo_whitespace + '">' + real_rank_item + '</a>'
             bot.sendMessage(parse_mode='HTML', chat_id=update.message.chat_id, text=html_tag)
         else:
-            update.message.reply_text(portal_site + " site가 수정되었습니다. k11tos@nate.com 으로 알려주세요.")
+            logger.info("%s : parsing error" % portal_site)
+            update.message.reply_text(portal_site + " site가 수정되어 봇 업데이트가 필요합니다. 최대한 빨리 업데이트 하겠습니다.")
+            bot.sendMessage(chat_id=MANAGER_ID, text = "실시간 검색어 봇에서 " + portal_site + "에 대한 업데이트가 필요합니다.")
 
 
 def main():
@@ -72,8 +74,8 @@ def main():
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
-    dp.add_handler(CommandHandler('start',start))
-    dp.add_handler(CommandHandler('first',first))
+    dp.add_handler(CommandHandler('start', start))
+    dp.add_handler(CommandHandler('first', first))
 
     # Start the Bot
     updater.start_polling()
