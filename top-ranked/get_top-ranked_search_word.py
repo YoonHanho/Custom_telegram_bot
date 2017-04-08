@@ -35,7 +35,9 @@ def get_rank_string(portal_site, bsObj):
             searching_word = bsObj.find("ul", {"class": "ah_l"}).li.find("span", {"class": "ah_k"}).get_text()
             return searching_word
     except:
-        return None
+        pass
+
+    return None
 
 
 def start(bot, update):
