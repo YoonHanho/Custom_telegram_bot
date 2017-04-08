@@ -23,13 +23,17 @@ query_address = {'Daum' :'http://search.daum.net/search?w=tot&q=',
 def get_rank_string(portal_site, bsObj):
     if(portal_site == 'Daum'):
         try:
-            searching_word = bsObj.find("ol",{"id":"realTimeSearchWord"}).li.div.div.find("span",{"class":"txt_issue"}).a.strong.get_text()
+            # searching_word = bsObj.find("ol",{"id":"realTimeSearchWord"}).li.div.div.find("span",{"class":"txt_issue"}).a.strong.get_text()
+            #2017.04.08
+            searching_word = bsObj.find("ol",{"class":"list_hotissue"}).li.div.div.find("span",{"class":"txt_issue"}).a.get_text()
             return searching_word
         except:
             logger.info("%s : parsing error" % portal_site)
     elif(portal_site == 'Naver'):
         try:
-            searching_word = bsObj.find("ol",{"id":"realrank"}).li.a.span.get_text()
+            #searching_word = bsObj.find("ol",{"id":"realrank"}).li.a.span.get_text()
+            #2017.04.08
+            searching_word = bsObj.find("div",{"class":"section_navbar"}).find("ul",{"class":"ah_l"}).li.find("span",{"class":"ah_k"}).get_text()
             return searching_word
         except:
             logger.info("%s : parsing error" % portal_site)
@@ -52,10 +56,14 @@ def first(bot, update):
 
         real_rank_item = get_rank_string(portal_site,bsObj)
 
-        update.message.reply_text(portal_site + " 실시간 검색어 1위")
-        real_rank_wo_whitespace = urllib.parse.quote_plus(real_rank_item)
-        html_tag = '<a href="' + query_address[portal_site] + real_rank_wo_whitespace + '">' + real_rank_item + '</a>'
-        bot.sendMessage(parse_mode='HTML', chat_id=update.message.chat_id, text=html_tag)
+        if real_rank_item is not None:
+            update.message.reply_text(portal_site + " 실시간 검색어 1위")
+            real_rank_wo_whitespace = urllib.parse.quote_plus(real_rank_item)
+            html_tag = '<a href="' + query_address[portal_site] + real_rank_wo_whitespace + '">' + real_rank_item + '</a>'
+            bot.sendMessage(parse_mode='HTML', chat_id=update.message.chat_id, text=html_tag)
+        else:
+            update.message.reply_text(portal_site + " site가 수정되었습니다. k11tos@nate.com 으로 알려주세요.")
+
 
 def main():
     # Create the EventHandler and pass it your bot's token.
