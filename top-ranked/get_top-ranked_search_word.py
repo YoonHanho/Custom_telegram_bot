@@ -28,16 +28,16 @@ def get_rank_string(portal_site, bsObj):
             # 2017.04.08
             searching_word = bsObj.find("ol", {"class": "list_hotissue"}).li.div.div.find("span", {
                 "class": "txt_issue"}).a.get_text()
-            return searching_word
         elif (portal_site == 'Naver'):
             # searching_word = bsObj.find("ol",{"id":"realrank"}).li.a.span.get_text()
             # 2017.04.08
             searching_word = bsObj.find("ul", {"class": "ah_l"}).li.find("span", {"class": "ah_k"}).get_text()
-            return searching_word
-    except:
-        pass
+        else:
+            return None
+    except AttributeError as e:
+        return None
 
-    return None
+    return searching_word
 
 
 def start(bot, update):
@@ -52,8 +52,14 @@ def first(bot, update):
     logger.info("%s(%s) wants the rank" % (user.first_name, user.id))
 
     for portal_site in ['Daum', 'Naver']:
-        page_src = urlopen(address[portal_site])
-        bsObj = BeautifulSoup(page_src.read(), "html.parser")
+        try:
+            page_src = urlopen(address[portal_site])
+            bsObj = BeautifulSoup(page_src.read(), "html.parser")
+        except (HTTPError, AttributeError) as e:
+            logger.info("%s : server is not responding" % portal_site)
+            update.message.reply_text(portal_site + " site가 응답하지 않습니다.")
+            bot.sendMessage(chat_id=MANAGER_ID, text = "실시간 검색어 봇에서 " + portal_site + "에 대한 업데이트가 필요합니다.")
+            continue
 
         real_rank_item = get_rank_string(portal_site, bsObj)
 
@@ -80,7 +86,7 @@ def main():
     dp.add_handler(CommandHandler('first', first))
 
     # Start the Bot
-    updater.start_polling()
+    updater.start_polling(poll_interval=10.,timeout=10.)
 
     # Run the bot until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
