@@ -56,7 +56,7 @@ def main():
     dp.add_handler(CommandHandler('job', job))
 
     # Start the Bot
-    updater.start_polling()
+    updater.start_polling(poll_interval=10.,timeout=10.)
 
     # Run the bot until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
