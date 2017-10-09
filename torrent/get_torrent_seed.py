@@ -115,7 +115,7 @@ def get_site_by_torrentkim(program_name, selected_date):
 
     query_string = program_name + ' ' + selected_date
     query_string = urllib.parse.quote_plus(query_string)
-    search_url = 'https://torrentkim5.net/bbs/s.php?k=' + query_string + '&b=&q='
+    search_url = 'https://torrentkim10.net/bbs/s.php?k=' + query_string + '&b=&q='
     logger.info("search_url = %s" % search_url)
 
     driver.get(search_url)
