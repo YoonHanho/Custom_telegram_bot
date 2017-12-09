@@ -10,7 +10,7 @@ import urllib.parse
 
 import sys
 sys.path.append('../../custom_function')
-from get_top_ranked_search_word import *
+from top_ranked_word import *
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -57,7 +57,7 @@ def main():
     dp.add_handler(CommandHandler('first', first))
 
     # Start the Bot
-    updater.start_polling(poll_interval=10.,timeout=10.)
+    updater.start_polling(poll_interval=10.,timeout=100.)
 
     # Run the bot until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
