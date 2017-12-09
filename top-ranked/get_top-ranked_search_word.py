@@ -8,36 +8,16 @@ from urllib.request import urlopen
 from TOKEN import *
 import urllib.parse
 
+import sys
+sys.path.append('../../custom_function')
+from get_top_ranked_search_word import *
+
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     filename=LOG_DIR + '/log.txt',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
-
-address = {'Daum': 'http://www.daum.net/',
-           'Naver': 'http://www.naver.com/'}
-query_address = {'Daum': 'http://search.daum.net/search?w=tot&q=',
-                 'Naver': 'https://search.naver.com/search.naver?query='}
-
-
-def get_rank_string(portal_site, bsObj):
-    try:
-        if (portal_site == 'Daum'):
-            # searching_word = bsObj.find("ol",{"id":"realTimeSearchWord"}).li.div.div.find("span",{"class":"txt_issue"}).a.strong.get_text()
-            # 2017.04.08
-            searching_word = bsObj.find("ol", {"class": "list_hotissue"}).li.div.div.find("span", {
-                "class": "txt_issue"}).a.get_text()
-        elif (portal_site == 'Naver'):
-            # searching_word = bsObj.find("ol",{"id":"realrank"}).li.a.span.get_text()
-            # 2017.04.08
-            searching_word = bsObj.find("ul", {"class": "ah_l"}).li.find("span", {"class": "ah_k"}).get_text()
-        else:
-            return None
-    except AttributeError as e:
-        return None
-
-    return searching_word
 
 
 def start(bot, update):
@@ -52,16 +32,7 @@ def first(bot, update):
     logger.info("%s(%s) wants the rank" % (user.first_name, user.id))
 
     for portal_site in ['Daum', 'Naver']:
-        try:
-            page_src = urlopen(address[portal_site])
-            bsObj = BeautifulSoup(page_src.read(), "html.parser")
-        except (HTTPError, AttributeError) as e:
-            logger.info("%s : server is not responding" % portal_site)
-            update.message.reply_text(portal_site + " site가 응답하지 않습니다.")
-            bot.sendMessage(chat_id=MANAGER_ID, text = "실시간 검색어 봇에서 " + portal_site + "에 대한 업데이트가 필요합니다.")
-            continue
-
-        real_rank_item = get_rank_string(portal_site, bsObj)
+        real_rank_item = get_rank_string(portal_site)
 
         if real_rank_item is not None:
             update.message.reply_text(portal_site + " 실시간 검색어 1위")
