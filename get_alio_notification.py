@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 
 from urllib.request import urlopen
-import ssl
+#import ssl
 import re
 from bs4 import BeautifulSoup
 
 
 def get_alio_notification():
-    ssl._create_default_https_context = ssl._create_unverified_context
+    #ssl._create_default_https_context = ssl._create_unverified_context
     page_src = \
         urlopen(
             'http://job.alio.go.kr/recruit.do?'
