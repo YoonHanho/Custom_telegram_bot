@@ -5,6 +5,7 @@ from telegram.ext import Updater, CommandHandler
 from TOKEN import *
 import urllib.parse
 from top_ranked_word import *
+from get_alio_notification import *
 from urllib.request import urlopen
 import ssl
 
@@ -45,27 +46,13 @@ def first(bot, update):
 def job(bot, update):
     user = update.message.from_user
     logger.info("%s(%s) wants the job" % (user.first_name, user.id))
-    ssl._create_default_https_context = ssl._create_unverified_context
-    page_src = \
-        urlopen(
-            'http://job.alio.go.kr/recruit.do?'
-            + 'pageNo=1&param=&idx=&recruitYear=&recruitMonth='
-            + '&detail_code=R600019&detail_code=R600020&location=R3010&location=R3017'
-            + '&work_type=R1010&career=R2020&replacement=N&s_date=&e_date=&org_name=&ing=2&title=&order=TERM_END'
-        )
-    bsObj = BeautifulSoup(page_src.read(), "html.parser")
 
-    theadList = []
-    for headitem in bsObj.find("table", {"class": "tbl type_03"}).thead.findAll("th",{"scope": "col"}):
-        theadList.append(headitem)
+    job_list = get_alio_notification()
 
-    for contentsList in bsObj.find("table", {"class": "tbl type_03"}).tbody.findAll("tr"):
-        contents = contentsList.findAll("td")
-
+    for item in job_list:
         string = ""
-        for thead, content in zip(theadList, contents):
-            if thead.get_text().strip() != "" and content.get_text().strip() != "":
-                string = string + thead.get_text().strip() + ' : ' + content.get_text().strip() + "\n"
+        for key in item.keys():
+            string = string + key + ' : ' + item[key] + "\n"
         update.message.reply_text(string)
 
 
