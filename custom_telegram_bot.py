@@ -6,11 +6,17 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, Rege
 from TOKEN import *
 import urllib.parse
 from top_ranked_word import *
-from get_alio_notification import *
+import get_alio_notification
+import make_epub_from_TED_subtitle
 # from urllib.request import urlopen
 # import ssl
 import validators
 from ebooklib import epub
+from selenium import webdriver
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+import os
+
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -52,7 +58,7 @@ def job(bot, update):
     user = update.message.from_user
     logger.info("%s(%s) wants the job" % (user.first_name, user.id))
 
-    job_list = get_alio_notification()
+    job_list = get_alio_notification.get_alio_notification()
 
     for item in job_list:
         string = ""
@@ -64,7 +70,7 @@ def job(bot, update):
 
 def sub(bot, update):
     user = update.message.from_user
-    logger.info("%s(%s) started the bot." % (user.first_name, user.id))
+    logger.info("%s(%s) started the conversion of TED subtitle." % (user.first_name, user.id))
     update.message.reply_text("TED 자막을 ebook(epub format)으로 변환해 드립니다. TED 자막 사이트의 URL을 알려주세요.")
     update.message.reply_text('아래 예시를 참고하세요.')
     update.message.reply_text('ex) http://www.ted.com/talks/ken_robinson_says_schools_kill_creativity/transcript?language=en',
@@ -85,51 +91,29 @@ def convert(bot, update):
 
     web_address = update.message.text
     logger.info("Web address : %s" % web_address)
-    if not validators.url(web_address):
-        update.message.reply_text('Web 주소가 유효하지 않습니다.')
-        print_example_and_retry(update)
-        logger.info("This is not a web address.")
-        return ConversationHandler.END
-    else:
-        try:
-            page_src=urlopen(web_address)
-        except HTTPError:
-            update.message.reply_text("서버가 응답하지 않습니다.")
-            print_example_and_retry(update)
-            logger.info("The server don't respond.")
-            return ConversationHandler.END
 
-    bsObj = BeautifulSoup(page_src.read(), "html.parser")
+    subtitle = make_epub_from_TED_subtitle.get_subtitle_from_TED(web_address)
 
-    book = epub.EpubBook()
-
-    try:
-        titleObj = bsObj.find("h4",{"class":"m5"}).a
-        authorObj = bsObj.find("h4",{"class":"talk-link__speaker"})
-        paraObjs = bsObj.findAll("p",{"class":"talk-transcript__para"})
-    except AttributeError:
+    if subtitle == None:
+        update.message.reply_text("자막을 가져오지 못했습니다.")
         update.message.reply_text('적절한 TED 자막 사이트가 아닙니다. 혹시 맞다면 k11tos@nate.com 으로 알려주세요.')
-        print_example_and_retry(update)
         logger.info("This is not a TED web address.")
         return ConversationHandler.END
 
-    title = titleObj.get_text()
-    book.set_title(title)
+    book = epub.EpubBook()
 
-    language = titleObj['lang']
-    book.set_language(language)
+    book.set_title(subtitle['title'])
 
-    author = authorObj.get_text()
-    book.add_author(author)
+    # book.set_language(language)
+
+    book.add_author(subtitle['author'])
 
     # create chapter
-    c1 = epub.EpubHtml(title='TED', file_name='subtitle.xhtml', lang=language)
+    c1 = epub.EpubHtml(title='TED', file_name='subtitle.xhtml')
     subtitle_text = ''
-    for para in paraObjs:
-        subtitle_text = subtitle_text + para.data.get_text() + '<br>'
-        for line in para.span.get_text().split('\n'):
-            subtitle_text = subtitle_text + line + ' '
-        subtitle_text = subtitle_text + '<br><br>'
+    for time_step in subtitle['subtitle'].keys():
+        subtitle_text = subtitle_text + time_step + '<br>'
+        subtitle_text = subtitle_text + subtitle['subtitle'][time_step] + "<br><br>"
 
     c1.content='<p>' + subtitle_text + '</p>'
 
