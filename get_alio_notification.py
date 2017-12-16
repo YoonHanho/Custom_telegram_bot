@@ -27,7 +27,6 @@ def get_alio_notification():
         item = {}
         contents = contentsList.findAll("td")
 
-        string = ""
         for thead, content in zip(theadList, contents):
             content_text = content.get_text().replace('\n', ' ').replace('\r', ' ')
             content_text = re.sub(r'\s+', ' ', content_text)
