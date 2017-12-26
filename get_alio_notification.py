@@ -1,13 +1,14 @@
 #!/usr/bin/python3
 
 from urllib.request import urlopen
-#import ssl
+# import ssl
 import re
 from bs4 import BeautifulSoup
+from collections import OrderedDict
 
 
 def get_alio_notification():
-    #ssl._create_default_https_context = ssl._create_unverified_context
+    # ssl._create_default_https_context = ssl._create_unverified_context
     page_src = \
         urlopen(
             'http://job.alio.go.kr/recruit.do?'
@@ -24,7 +25,7 @@ def get_alio_notification():
     job_list = []
 
     for contentsList in bsObj.find("table", {"class": "tbl type_03"}).tbody.findAll("tr"):
-        item = {}
+        item = OrderedDict()
         contents = contentsList.findAll("td")
 
         for thead, content in zip(theadList, contents):

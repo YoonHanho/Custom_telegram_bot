@@ -9,6 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 import re
 from selenium.common.exceptions import TimeoutException
+import collections
 
 
 def get_author(bsObj):
@@ -91,6 +92,8 @@ def get_subtitle_from_TED(web_address):
 
 def main():
     subtitle = get_subtitle_from_TED('https://www.ted.com/talks/ken_robinson_says_schools_kill_creativity/transcript?language=en')
+
+    subtitle = collections.OrderedDict(sorted(subtitle.items()))
 
     if subtitle:
         print('Title : ' + subtitle['title'])
