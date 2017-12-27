@@ -19,6 +19,7 @@ import os
 from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
 from dateutil.parser import parse
 import datetime
+from pyvirtualdisplay import Display
 
 
 # Enable logging
