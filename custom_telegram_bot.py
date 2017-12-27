@@ -225,50 +225,52 @@ def torrent_date(bot, update, user_data):
     profile = get_firefox_profile_for_autodownload()
     found = 0
 
-    torrents = get_seedsite_by_torrentkim(user_data['program_name'], user_data['date'])
+    torrents = get_torrent_seed.get_seedsite_by_torrentkim(user_data['program_name'], user_data['date'])
     if torrents == None:
         logger.warning('The proper torrent seed is not found.')
         update.message.reply_text("토렌트 파일을 찾지 못했습니다.")
         return ConversationHandler.END
 
-    for torrent_title in torrents.keys():
-        if re.search(r'720p-NEXT', torrent_title):
-            logger.info("title = %s" % torrent_title)
-            logger.info("target = %s" % torrents[torrent_title])
-
-            driver_torrent = webdriver.Firefox(executable_path="/usr/local/bin/geckodriver",
-                                               firefox_profile=profile)
-            driver_torrent.get(torrents[torrent_title])
-            logger.info("I am trying to connect to %s..." % torrents[torrent_title])
-
-            try:
-                driver_torrent.switch_to.alert.accept()
-                logger.info('There is an alert for redirection.')
-            except NoAlertPresentException:
-                pass
-
-            time.sleep(10)
-            logger.info("torrent url : %s" % driver_torrent.current_url)
-
-            try:
-                element = driver_torrent.find_element_by_xpath("//table[@id='file_table']/tbody/tr[3]/td/a")
-
-                logger.info(torrent_title)
-
-                if update.message.chat_id == MANAGER_ID:
-                    update.message.reply_text(driver_torrent.current_url)
-
-                element.click()
-                time.sleep(20)
-                found = 1
-                break
-            except:
-                logger.warning('There is no proper torrent link in the site.')
-                pass
-
-            driver_torrent.quit()
-
-    display.stop()
+    update.message.reply_text("okay 오늘은 여기까지.")
+    return ConversationHandler.END
+    # for torrent_title in torrents.keys():
+    #     if re.search(r'720p-NEXT', torrent_title):
+    #         logger.info("title = %s" % torrent_title)
+    #         logger.info("target = %s" % torrents[torrent_title])
+    #
+    #         driver_torrent = webdriver.Firefox(executable_path="/usr/local/bin/geckodriver",
+    #                                            firefox_profile=profile)
+    #         driver_torrent.get(torrents[torrent_title])
+    #         logger.info("I am trying to connect to %s..." % torrents[torrent_title])
+    #
+    #         try:
+    #             driver_torrent.switch_to.alert.accept()
+    #             logger.info('There is an alert for redirection.')
+    #         except NoAlertPresentException:
+    #             pass
+    #
+    #         time.sleep(10)
+    #         logger.info("torrent url : %s" % driver_torrent.current_url)
+    #
+    #         try:
+    #             element = driver_torrent.find_element_by_xpath("//table[@id='file_table']/tbody/tr[3]/td/a")
+    #
+    #             logger.info(torrent_title)
+    #
+    #             if update.message.chat_id == MANAGER_ID:
+    #                 update.message.reply_text(driver_torrent.current_url)
+    #
+    #             element.click()
+    #             time.sleep(20)
+    #             found = 1
+    #             break
+    #         except:
+    #             logger.warning('There is no proper torrent link in the site.')
+    #             pass
+    #
+    #         driver_torrent.quit()
+    #
+    # display.stop()
 
     # if found:
     #     try:
