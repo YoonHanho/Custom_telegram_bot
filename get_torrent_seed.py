@@ -228,10 +228,11 @@ def get_seedsite_by_torrentkim(program_name, selected_date):
 #
 #
 def main():
-    torrents = get_seedsite_by_torrentkim('무한도전','171216')
+    torrents = get_seedsite_by_torrentkim('무한도전','171223')
 
     for torrent_title in torrents.keys():
         if re.search(r'720p-NEXT', torrent_title):
+            print(torrent_title)
             print(torrents[torrent_title])
 
 #     # Create the EventHandler and pass it your bot's token.

@@ -25,14 +25,14 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-SUB_CONVERT = range(1)
+SUB_CONVERT, PROGRAM, DATE = range(3)
 
 
 def start(bot, update):
     user = update.message.from_user
     logger.info("%s(%s) started the bot." % (user.first_name, user.id))
     update.message.reply_text("안녕하세요 빵돼지 봇입니다.")
-    update.message.reply_text("Command는 /first, /job, /sub 입니다.")
+    update.message.reply_text("Command는 /first, /job, /sub, /tor 입니다.")
 
 
 def first(bot, update):
@@ -162,6 +162,143 @@ def error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"' % (update, error))
 
 
+def get_firefox_profile_for_autodownload():
+
+    profile = webdriver.FirefoxProfile()
+
+    profile.set_preference("browser.download.folderList", 2)
+    profile.set_preference("browser.download.manager.showWhenStarting", False)
+    profile.set_preference("browser.download.dir", DOWN_DIR)
+    profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "file/unknown")
+
+    return profile
+
+
+def torrent_start(bot, update):
+    reply_keyboard = [['무한도전', '썰전', '마이 리틀 텔레비전', '차이나는 클라스', '라디오스타']]
+
+    user = update.message.from_user
+    logger.info("%s(%s) started the bot." % (user.first_name, user.id))
+
+    update.message.reply_text("토렌트 파일을 다운 받아 드립니다. 프로그램을 선택해주세요.",
+                              reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+
+    return PROGRAM
+
+
+def torrent_program(bot, update, user_data):
+    user_data['program_name'] = update.message.text
+    update.message.reply_text(user_data['program_name'] + '를 선택하셨습니다.')
+    logger.info("Selected program : %s" % user_data['program_name'])
+
+    update.message.reply_text("프로그램이 방영된 날짜를 선택해주세요. ex) 170209")
+
+    return DATE
+
+
+def torrent_date(bot, update, user_data):
+
+    # user = update.message.from_user
+    user_data['date'] = update.message.text
+
+    try:
+        date_in_format = parse(user_data['date']).date()
+        today = datetime.date.today()
+        if date_in_format > today:
+            raise ValueError
+    except:
+        update.message.reply_text("날짜를 잘못 입력하셨습니다. /torrent 부터 다시 시작해주세요.")
+        return ConversationHandler.END
+
+    update.message.reply_text("선택하신 날짜는 " + str(date_in_format) + "입니다.")
+    update.message.reply_text("잠시만 기다려주세요. 몇 분 정도 걸릴 수 있습니다.")
+    logger.info("Selected date : %s" % date_in_format)
+
+    display = Display(visible=0, size=(800, 600))
+    display.start()
+
+    profile = get_firefox_profile_for_autodownload()
+    found = 0
+
+    torrents = get_seedsite_by_torrentkim(user_data['program_name'], user_data['date'])
+    if torrents == None:
+        logger.warning('The proper torrent seed is not found.')
+        update.message.reply_text("토렌트 파일을 찾지 못했습니다.")
+        return ConversationHandler.END
+
+    for torrent_title in torrents.keys():
+        if re.search(r'720p-NEXT', torrent_title):
+            logger.info("title = %s" % torrent_title)
+            logger.info("target = %s" % torrents[torrent_title])
+
+            driver_torrent = webdriver.Firefox(executable_path="/usr/local/bin/geckodriver",
+                                               firefox_profile=profile)
+            driver_torrent.get(torrents[torrent_title])
+            logger.info("I am trying to connect to %s..." % torrents[torrent_title])
+
+            try:
+                driver_torrent.switch_to.alert.accept()
+                logger.info('There is an alert for redirection.')
+            except NoAlertPresentException:
+                pass
+
+            time.sleep(10)
+            logger.info("torrent url : %s" % driver_torrent.current_url)
+
+            try:
+                element = driver_torrent.find_element_by_xpath("//table[@id='file_table']/tbody/tr[3]/td/a")
+
+                logger.info(torrent_title)
+
+                if update.message.chat_id == MANAGER_ID:
+                    update.message.reply_text(driver_torrent.current_url)
+
+                element.click()
+                time.sleep(20)
+                found = 1
+                break
+            except:
+                logger.warning('There is no proper torrent link in the site.')
+                pass
+
+            driver_torrent.quit()
+
+    display.stop()
+
+    # if found:
+    #     try:
+    #         os.remove(DOWN_DIR + '/*.torrent')
+    #     except FileNotFoundError:
+    #         pass
+    #
+    #     new_file_name = DOWN_DIR + '/' + program_name + selected_date + '.torrent'
+    #
+    #     for torrent_file in glob.glob(DOWN_DIR + '/*' + selected_date + '*.torrent'):
+    #         shutil.move(torrent_file, new_file_name)
+    #         break
+    #
+    #     bot.sendDocument(chat_id=update.message.chat_id, document=open(new_file_name, 'rb'))
+    #     update.message.reply_text('완료')
+    #     logger.info('The torrent file is sent to %s' % user.first_name)
+    #
+    #     if update.message.chat_id == MANAGER_ID or update.message.chat_id == MANAGER2_ID:
+    #         ssh = paramiko.SSHClient()
+    #         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    #         ssh.connect(REMOTE_HOST, username=REMOTE_USER, key_filename=RSA_KEY_LOCATION)
+    #         sftp = ssh.open_sftp()
+    #         sftp.put(new_file_name, REMOTE_DIR + '/' + program_name + selected_date + '.torrent')
+    #         sftp.close()
+    #         ssh.close()
+    #         logger.info('Torrent file is sent to Kodi.')
+    #
+    #     os.remove(new_file_name)
+    # else:
+    #     logger.warning('The proper torrent seed is not found.')
+    #     update.message.reply_text("토렌트 파일을 찾지 못했습니다.")
+
+    return ConversationHandler.END
+
+
 def main():
     # Create the EventHandler and pass it your bot's token.
     updater = Updater(TOKEN)
@@ -174,7 +311,7 @@ def main():
     dp.add_handler(CommandHandler('job', job))
 
     # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
-    conv_handler = ConversationHandler(
+    sub_conv_handler = ConversationHandler(
         entry_points=[CommandHandler('sub', sub)],
 
         states={
@@ -184,7 +321,22 @@ def main():
         fallbacks=[CommandHandler('cancel', cancel)]
     )
 
-    dp.add_handler(conv_handler)
+    dp.add_handler(sub_conv_handler)
+
+    # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
+    tor_conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('tor', torrent_start)],
+
+        states={
+            PROGRAM: [RegexHandler('^(썰전|무한도전|마이 리틀 텔레비전|차이나는 클라스|라디오스타)$', torrent_program, pass_user_data=True)],
+
+            DATE: [MessageHandler(Filters.text, torrent_date, pass_user_data=True)]
+        },
+
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    dp.add_handler(tor_conv_handler)
 
     # log all errors
     dp.add_error_handler(error)
