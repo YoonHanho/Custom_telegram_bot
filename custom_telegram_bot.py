@@ -210,7 +210,7 @@ def torrent_date(bot, update, user_data):
         today = datetime.date.today()
         if date_in_format > today:
             raise ValueError
-    except:
+    except ValueError:
         update.message.reply_text("날짜를 잘못 입력하셨습니다. /torrent 부터 다시 시작해주세요.")
         return ConversationHandler.END
 
