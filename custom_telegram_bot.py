@@ -8,6 +8,7 @@ import urllib.parse
 from top_ranked_word import *
 import get_alio_notification
 import make_epub_from_TED_subtitle
+import get_torrent_seed
 # from urllib.request import urlopen
 # import ssl
 import validators
@@ -204,8 +205,6 @@ def torrent_date(bot, update, user_data):
 
     # user = update.message.from_user
     user_data['date'] = update.message.text
-    print(user_data['program_name'])
-    print(user_data['date'])
 
     try:
         date_in_format = parse(user_data['date'], yearfirst=True).date()
