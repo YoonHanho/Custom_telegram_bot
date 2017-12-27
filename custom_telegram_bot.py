@@ -201,6 +201,7 @@ def torrent_date(bot, update, user_data):
 
     # user = update.message.from_user
     user_data['date'] = update.message.text
+    print(user_data['date'])
 
     try:
         date_in_format = parse(user_data['date']).date()
@@ -326,7 +327,7 @@ def main():
 
     # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
     tor_conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('tor', torrent_start)],
+        entry_points=[CommandHandler('torrent', torrent_start)],
 
         states={
             PROGRAM: [RegexHandler('^(썰전|무한도전|마이 리틀 텔레비전|차이나는 클라스|라디오스타)$', torrent_program, pass_user_data=True)],
