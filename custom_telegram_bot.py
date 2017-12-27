@@ -17,6 +17,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 import os
 from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
+from dateutil.parser import parse
 
 
 # Enable logging
@@ -33,7 +34,7 @@ def start(bot, update):
     user = update.message.from_user
     logger.info("%s(%s) started the bot." % (user.first_name, user.id))
     update.message.reply_text("안녕하세요 빵돼지 봇입니다.")
-    update.message.reply_text("Command는 /first, /job, /sub, /tor 입니다.")
+    update.message.reply_text("Command는 /first, /job, /sub, /torrent 입니다.")
 
 
 def first(bot, update):
@@ -201,6 +202,7 @@ def torrent_date(bot, update, user_data):
 
     # user = update.message.from_user
     user_data['date'] = update.message.text
+    print(user_data['program_name'])
     print(user_data['date'])
 
     try:
