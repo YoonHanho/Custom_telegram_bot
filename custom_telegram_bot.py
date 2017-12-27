@@ -206,7 +206,7 @@ def torrent_date(bot, update, user_data):
     print(user_data['date'])
 
     try:
-        date_in_format = parse(user_data['date']).date()
+        date_in_format = parse(user_data['date'], yearfirst=True).date()
         today = datetime.date.today()
         if date_in_format > today:
             raise ValueError
