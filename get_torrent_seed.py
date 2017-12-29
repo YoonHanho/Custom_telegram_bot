@@ -17,7 +17,6 @@ from selenium import webdriver
 from pyvirtualdisplay import Display
 from TOKEN import *
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
-from path import Path
 
 
 # Enable logging
