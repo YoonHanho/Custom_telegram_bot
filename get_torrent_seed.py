@@ -40,6 +40,7 @@ def get_firefox_profile_for_autodownload():
     profile.set_preference("browser.download.manager.showWhenStarting", False)
     profile.set_preference("browser.download.dir", DOWN_DIR)
     profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "file/unknown")
+    profile.set_preference("intl.accept_languages", "kr")
 
     return profile
 
