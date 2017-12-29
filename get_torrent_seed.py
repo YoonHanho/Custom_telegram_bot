@@ -2,7 +2,7 @@
 
 import re
 #
-# import time
+import time
 # import datetime
 # from dateutil.parser import parse
 #
@@ -13,13 +13,13 @@ import logging
 # import glob
 import urllib.parse
 from urllib.parse import urljoin
-# from selenium.common.exceptions import NoAlertPresentException
+from selenium.common.exceptions import NoAlertPresentException
 from bs4 import BeautifulSoup
 from urllib.request import urlopen, Request
 import requests
 from selenium import webdriver
-# from pyvirtualdisplay import Display
-# from TOKEN import *
+from pyvirtualdisplay import Display
+from TOKEN import *
 # from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
 # from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
 #                           ConversationHandler)
@@ -30,6 +30,18 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+
+
+def get_firefox_profile_for_autodownload():
+
+    profile = webdriver.FirefoxProfile()
+
+    profile.set_preference("browser.download.folderList", 2)
+    profile.set_preference("browser.download.manager.showWhenStarting", False)
+    profile.set_preference("browser.download.dir", DOWN_DIR)
+    profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "file/unknown")
+
+    return profile
 
 
 def get_torrentkim_site():
@@ -106,26 +118,38 @@ def get_seedsite_by_torrentkim(program_name, selected_date):
         return valid_lists
 
 
+def get_torrent_seed_file(url):
+    display = Display(visible=0, size=(800, 600))
+    display.start()
+    profile = get_firefox_profile_for_autodownload()
+    driver_torrent = webdriver.Firefox(executable_path="/usr/local/bin/geckodriver",
+                                       firefox_profile=profile)
+    driver_torrent.get(url)
+    logger.info("I am trying to connect to " + url)
+
+    try:
+        driver_torrent.switch_to.alert.accept()
+        logger.info('There is an alert for redirection.')
+    except NoAlertPresentException:
+        logger.info('There is no redirection.')
+        pass
+
+    #time.sleep(10)
+    logger.info("torrent url : %s" % driver_torrent.current_url)
+    try:
+        element = driver_torrent.find_element_by_xpath("//table[@id='file_table']/tbody/tr[3]/td/a")
+
+        element.click()
+        time.sleep(10)
+        found = 1
+        #break
+    except:
+        logger.warning('There is no proper torrent link in the site.')
+        pass
+
+    driver_torrent.quit()
+    display.stop()
 # def date(bot, update):
-#     global selected_program
-#     global selected_date
-#     global program_name
-#
-#     user = update.message.from_user
-#     selected_date = update.message.text
-#
-#     try:
-#         date_in_format = parse(selected_date).date()
-#         today = datetime.date.today()
-#         if date_in_format > today:
-#             raise ValueError
-#     except:
-#         update.message.reply_text("날짜를 잘못 입력하셨습니다. /start 부터 다시 시작해주세요.")
-#         return ConversationHandler.END
-#
-#     update.message.reply_text("선택하신 날짜는 " + str(date_in_format) + "입니다.")
-#     update.message.reply_text("잠시만 기다려주세요. 몇 분 정도 걸릴 수 있습니다.")
-#     logger.info("Selected date : %s" % date_in_format)
 #
 #     display = Display(visible=0, size=(800, 600))
 #     display.start()
@@ -214,26 +238,18 @@ def get_seedsite_by_torrentkim(program_name, selected_date):
 #     return ConversationHandler.END
 #
 #
-# def cancel(bot, update):
-#     user = update.message.from_user
-#     logger.info("User %s canceled the download." % user.first_name)
-#     update.message.reply_text('작업이 취소되었습니다.',
-#                               reply_markup=ReplyKeyboardRemove())
-#
-#     return ConversationHandler.END
-#
-#
-# def error(bot, update, error):
-#     logger.warning('Update "%s" caused error "%s"' % (update, error))
-#
-#
 def main():
     torrents = get_seedsite_by_torrentkim('무한도전','171223')
 
+    title = None
+    url = None
     for torrent_title in torrents.keys():
         if re.search(r'720p-NEXT', torrent_title):
-            print(torrent_title)
-            print(torrents[torrent_title])
+            title = torrent_title
+            url = torrents[torrent_title]
+            break
+
+    get_torrent_seed_file(url)
 
 #     # Create the EventHandler and pass it your bot's token.
 #     updater = Updater(TOKEN)
