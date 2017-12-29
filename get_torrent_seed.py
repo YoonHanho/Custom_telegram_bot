@@ -135,8 +135,13 @@ def get_torrent_seed_file(url):
         logger.info('There is no redirection.')
         pass
 
-    #time.sleep(10)
     logger.info("torrent url : %s" % driver_torrent.current_url)
+
+    try:
+        os.remove(DOWN_DIR + '/*.torrent')
+    except FileNotFoundError:
+        pass
+
     try:
         element = driver_torrent.find_element_by_xpath("//table[@id='file_table']/tbody/tr[3]/td/a")
 
@@ -152,10 +157,6 @@ def get_torrent_seed_file(url):
     display.stop()
 # def date(bot, update):
 #
-#     display = Display(visible=0, size=(800, 600))
-#     display.start()
-#
-#     profile = get_firefox_profile_for_autodownload()
 #     found = 0
 #
 #     # (valid_title_lists, valid_url_lists) = get_site_by_Google(program_name, selected_date)
