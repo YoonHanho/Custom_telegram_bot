@@ -3,11 +3,8 @@
 import re
 #
 import time
-# import datetime
-# from dateutil.parser import parse
-#
 import logging
-# import os
+import os
 # import paramiko
 # import shutil
 # import glob
@@ -20,10 +17,8 @@ import requests
 from selenium import webdriver
 from pyvirtualdisplay import Display
 from TOKEN import *
-# from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
-# from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
-#                           ConversationHandler)
-#
+
+
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     #filename=LOG_DIR + '/log.txt',
@@ -120,6 +115,11 @@ def get_seedsite_by_torrentkim(program_name, selected_date):
 
 
 def get_torrent_seed_file(url):
+    try:
+        os.remove(DOWN_DIR + '/*.torrent')
+    except FileNotFoundError:
+        pass
+
     display = Display(visible=0, size=(800, 600))
     display.start()
     profile = get_firefox_profile_for_autodownload()
@@ -136,11 +136,6 @@ def get_torrent_seed_file(url):
         pass
 
     logger.info("torrent url : %s" % driver_torrent.current_url)
-
-    try:
-        os.remove(DOWN_DIR + '/*.torrent')
-    except FileNotFoundError:
-        pass
 
     try:
         element = driver_torrent.find_element_by_xpath("//table[@id='file_table']/tbody/tr[3]/td/a")
@@ -174,17 +169,6 @@ def get_torrent_seed_file(url):
 #
 #             driver_torrent = webdriver.Firefox(executable_path="/usr/local/bin/geckodriver",
 #                                                firefox_profile=profile)
-#             driver_torrent.get(target_url)
-#             logger.info("I am trying to connect to %s..." % target_url)
-#
-#             try:
-#                 driver_torrent.switch_to.alert.accept()
-#                 logger.info('There is an alert for redirection.')
-#             except NoAlertPresentException:
-#                 pass
-#
-#             time.sleep(10)
-#             logger.info("torrent url : %s" % driver_torrent.current_url)
 #
 #             try:
 #                 element = driver_torrent.find_element_by_xpath("//table[@id='file_table']/tbody/tr[3]/td/a")
@@ -207,10 +191,6 @@ def get_torrent_seed_file(url):
 #     display.stop()
 #
 #     if found:
-#         try:
-#             os.remove(DOWN_DIR + '/*.torrent')
-#         except FileNotFoundError:
-#             pass
 #
 #         new_file_name = DOWN_DIR + '/' + program_name + selected_date + '.torrent'
 #
@@ -252,38 +232,6 @@ def main():
             break
 
     get_torrent_seed_file(url)
-
-#     # Create the EventHandler and pass it your bot's token.
-#     updater = Updater(TOKEN)
-#
-#     # Get the dispatcher to register handlers
-#     dp = updater.dispatcher
-#
-#     # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
-#     conv_handler = ConversationHandler(
-#         entry_points=[CommandHandler('start', start)],
-#
-#         states={
-#             PROGRAM: [RegexHandler('^(썰전|무한도전|마이 리틀 텔레비전|차이나는 클라스|라디오스타)$', program)],
-#
-#             DATE: [MessageHandler(Filters.text, date)]
-#         },
-#
-#         fallbacks=[CommandHandler('cancel', cancel)]
-#     )
-#
-#     dp.add_handler(conv_handler)
-#
-#     # log all errors
-#     dp.add_error_handler(error)
-#
-#     # Start the Bot
-#     updater.start_polling(poll_interval=10.,timeout=10.)
-#
-#     # Run the bot until the you presses Ctrl-C or the process receives SIGINT,
-#     # SIGTERM or SIGABRT. This should be used most of the time, since
-#     # start_polling() is non-blocking and will stop the bot gracefully.
-#     updater.idle()
 
 
 if __name__ == '__main__':
