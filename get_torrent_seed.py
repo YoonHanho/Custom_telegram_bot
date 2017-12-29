@@ -1,13 +1,12 @@
 #!/usr/bin/python3
 
 import re
-#
 import time
 import logging
 import os
 # import paramiko
 # import shutil
-# import glob
+import glob
 import urllib.parse
 from urllib.parse import urljoin
 from selenium.common.exceptions import NoAlertPresentException
@@ -17,6 +16,8 @@ import requests
 from selenium import webdriver
 from pyvirtualdisplay import Display
 from TOKEN import *
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+from path import Path
 
 
 # Enable logging
@@ -35,7 +36,6 @@ def get_firefox_profile_for_autodownload():
     profile.set_preference("browser.download.manager.showWhenStarting", False)
     profile.set_preference("browser.download.dir", DOWN_DIR)
     profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "file/unknown")
-    profile.set_preference("intl.accept_languages", "kr")
 
     return profile
 
@@ -115,16 +115,18 @@ def get_seedsite_by_torrentkim(program_name, selected_date):
 
 
 def get_torrent_seed_file(url):
-    try:
-        os.remove(DOWN_DIR + '/*.torrent')
-    except FileNotFoundError:
-        pass
+    for file in glob.glob(DOWN_DIR + '/*.torrent'):
+        os.remove(file)
+    logger.info('Previous files were removed.')
 
+    # binary = FirefoxBinary('/Applications/Firefox.app/Contents/MacOS/firefox-bin')
     display = Display(visible=0, size=(800, 600))
     display.start()
     profile = get_firefox_profile_for_autodownload()
-    driver_torrent = webdriver.Firefox(executable_path="/usr/local/bin/geckodriver",
+    driver_torrent = webdriver.Firefox(executable_path=FIREFOX_DRIVER,
                                        firefox_profile=profile)
+                                       # firefox_profile=profile,
+                                       # firefox_binary=binary)
     driver_torrent.get(url)
     logger.info("I am trying to connect to " + url)
 
@@ -139,17 +141,28 @@ def get_torrent_seed_file(url):
 
     try:
         element = driver_torrent.find_element_by_xpath("//table[@id='file_table']/tbody/tr[3]/td/a")
-
-        element.click()
-        time.sleep(10)
-        found = 1
-        #break
     except:
         logger.warning('There is no proper torrent link in the site.')
-        pass
+        driver_torrent.quit()
+        display.stop()
+        return None
 
-    driver_torrent.quit()
-    display.stop()
+    element.click()
+
+    files = None
+    while not files:
+        files = glob.glob(DOWN_DIR + '/*.torrent')
+        time.sleep(1)
+
+    torrent_file = glob.glob(DOWN_DIR + '/*.torrent')[0]
+
+    if os.path.isfile(torrent_file):
+        driver_torrent.quit()
+        display.stop()
+        return torrent_file
+    else:
+        logger.warning("It isn't a file! : " + torrent_file)
+
 # def date(bot, update):
 #
 #     found = 0
@@ -229,9 +242,11 @@ def main():
         if re.search(r'720p-NEXT', torrent_title):
             title = torrent_title
             url = torrents[torrent_title]
+            logger.info(title + ' : ' + url)
             break
 
-    get_torrent_seed_file(url)
+    file_name = get_torrent_seed_file('https://torrentkim12.com/torrent_variety/852373.html')
+    print('Local file name : ' + file_name)
 
 
 if __name__ == '__main__':
