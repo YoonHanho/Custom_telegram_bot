@@ -259,7 +259,7 @@ def torrent_date(bot, update, user_data):
 
 
 def log(bot, update):
-    logger.info(update.message.chat_id + 'wants the log.')
+    logger.info("%s(%s) wants the log." % (user.first_name, user.id))
     if update.message.chat_id != MANAGER_ID:
         update.message.reply_text('이 command는 관리자를 위한 것으로 user에게는 허용되지 않습니다.')
 
