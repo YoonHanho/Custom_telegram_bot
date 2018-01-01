@@ -149,11 +149,17 @@ def get_torrent_seed_file(url):
     element.click()
 
     files = None
-    while not files:
+    timeout = 10
+    while not files and timeout > 0:
         files = glob.glob(DOWN_DIR + '/*.torrent')
         time.sleep(1)
+        timeout = timeout - 1
 
-    torrent_file = glob.glob(DOWN_DIR + '/*.torrent')[0]
+    if timeout == 0:
+        logger.warning('Time out for downloading')
+        return None
+    else:
+        torrent_file = glob.glob(DOWN_DIR + '/*.torrent')[0]
 
     if os.path.isfile(torrent_file):
         driver_torrent.quit()
@@ -161,77 +167,19 @@ def get_torrent_seed_file(url):
         return torrent_file
     else:
         logger.warning("It isn't a file! : " + torrent_file)
+        return None
 
-# def date(bot, update):
-#
-#     found = 0
-#
-#     # (valid_title_lists, valid_url_lists) = get_site_by_Google(program_name, selected_date)
-#     (valid_title_lists, valid_url_lists) = get_site_by_torrentkim(program_name, selected_date)
-#     if not valid_title_lists:
-#         logger.warning('The proper torrent seed is not found.')
-#         update.message.reply_text("토렌트 파일을 찾지 못했습니다.")
-#         return ConversationHandler.END
-#
-#     for (title, target_url) in zip(valid_title_lists, valid_url_lists):
-#
-#         logger.info("title = %s" % title)
-#         logger.info("target = %s" % target_url)
-#         if re.search(program_name, title) and re.search(selected_date, title):
-#
-#             driver_torrent = webdriver.Firefox(executable_path="/usr/local/bin/geckodriver",
-#                                                firefox_profile=profile)
-#
-#             try:
-#                 element = driver_torrent.find_element_by_xpath("//table[@id='file_table']/tbody/tr[3]/td/a")
-#
-#                 logger.info(title)
-#
-#                 if update.message.chat_id == MANAGER_ID:
-#                     update.message.reply_text(driver_torrent.current_url)
-#
-#                 element.click()
-#                 time.sleep(10)
-#                 found = 1
-#                 break
-#             except:
-#                 logger.warning('There is no proper torrent link in the site.')
-#                 pass
-#
-#             driver_torrent.quit()
-#
-#     display.stop()
-#
-#     if found:
-#
-#         new_file_name = DOWN_DIR + '/' + program_name + selected_date + '.torrent'
-#
-#         for torrent_file in glob.glob(DOWN_DIR + '/*' + selected_date + '*.torrent'):
-#             shutil.move(torrent_file, new_file_name)
-#             break
-#
-#         bot.sendDocument(chat_id=update.message.chat_id, document=open(new_file_name, 'rb'))
-#         update.message.reply_text('완료')
-#         logger.info('The torrent file is sent to %s' % user.first_name)
-#
-#         if update.message.chat_id == MANAGER_ID or update.message.chat_id == MANAGER2_ID:
-#             ssh = paramiko.SSHClient()
-#             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-#             ssh.connect(REMOTE_HOST, username=REMOTE_USER, key_filename=RSA_KEY_LOCATION)
-#             sftp = ssh.open_sftp()
-#             sftp.put(new_file_name, REMOTE_DIR + '/' + program_name + selected_date + '.torrent')
-#             sftp.close()
-#             ssh.close()
-#             logger.info('Torrent file is sent to Kodi.')
-#
-#         os.remove(new_file_name)
-#     else:
-#         logger.warning('The proper torrent seed is not found.')
-#         update.message.reply_text("토렌트 파일을 찾지 못했습니다.")
-#
-#     return ConversationHandler.END
-#
-#
+
+def send_file_to_remote(host, user, key, file):
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(host, username=user, key_filename=key)
+    sftp = ssh.open_sftp()
+    sftp.put(file, REMOTE_DIR + '/' + os.path.basename(file))
+    sftp.close()
+    ssh.close()
+
+
 def main():
     torrents = get_seedsite_by_torrentkim('무한도전','171223')
 
@@ -245,7 +193,9 @@ def main():
             break
 
     file_name = get_torrent_seed_file('https://torrentkim12.com/torrent_variety/852373.html')
-    print('Local file name : ' + file_name)
+    logger.info('Local file name : ' + file_name)
+    
+    send_file_to_remote(REMOTE_HOST, REMOTE_USER, RSA_KEY_LOCATION, file_name)
 
 
 if __name__ == '__main__':
