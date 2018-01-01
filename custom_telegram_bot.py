@@ -202,7 +202,7 @@ def torrent_program(bot, update, user_data):
 
 def torrent_date(bot, update, user_data):
 
-    # user = update.message.from_user
+    user = update.message.from_user
     user_data['date'] = update.message.text
 
     try:
