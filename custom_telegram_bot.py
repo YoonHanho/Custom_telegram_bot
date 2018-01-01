@@ -258,6 +258,13 @@ def torrent_date(bot, update, user_data):
     return ConversationHandler.END
 
 
+def log(bot, update):
+    if update.message.chat_id != MANAGER_ID:
+        update.message.reply_text('이 command는 관리자를 위한 것으로 user에게는 허용되지 않습니다.')
+
+    bot.sendDocument(chat_id=update.message.chat_id,document=open(LOG_DIR + '/log.txt','r') )
+
+
 def main():
     # Create the EventHandler and pass it your bot's token.
     updater = Updater(TOKEN)
@@ -268,6 +275,7 @@ def main():
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('first', first))
     dp.add_handler(CommandHandler('job', job))
+    dp.add_handler(CommandHandler('log', log))
 
     # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
     sub_conv_handler = ConversationHandler(
