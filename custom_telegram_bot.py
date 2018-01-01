@@ -262,7 +262,7 @@ def log(bot, update):
     if update.message.chat_id != MANAGER_ID:
         update.message.reply_text('이 command는 관리자를 위한 것으로 user에게는 허용되지 않습니다.')
 
-    bot.sendDocument(chat_id=update.message.chat_id,document=open(LOG_DIR + '/log.txt','r') )
+    bot.sendDocument(chat_id=update.message.chat_id,document=open(LOG_DIR + '/log.txt','rb'))
 
 
 def main():
