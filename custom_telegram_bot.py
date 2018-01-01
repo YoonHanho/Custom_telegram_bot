@@ -179,7 +179,7 @@ def get_firefox_profile_for_autodownload():
 
 
 def torrent_start(bot, update):
-    reply_keyboard = [['무한도전', '썰전', '마이 리틀 텔레비전', '차이나는 클라스', '라디오스타']]
+    reply_keyboard = [['무한도전', '썰전', '차이나는 클라스', '라디오스타']]
 
     user = update.message.from_user
     logger.info("%s(%s) started the bot." % (user.first_name, user.id))
@@ -251,7 +251,7 @@ def torrent_date(bot, update, user_data):
         return ConversationHandler.END
 
     logger.info('Local file name : ' + file_name)
-    bot.sendDocument(chat_id=update.message.chat_id, document=open(new_file_name, 'rb'))
+    bot.sendDocument(chat_id=update.message.chat_id, document=open(file_name, 'rb'))
     update.message.reply_text('완료')
     logger.info('The torrent file is sent to %s' % user.first_name)
 
@@ -290,7 +290,7 @@ def main():
         entry_points=[CommandHandler('torrent', torrent_start)],
 
         states={
-            PROGRAM: [RegexHandler('^(썰전|무한도전|마이 리틀 텔레비전|차이나는 클라스|라디오스타)$', torrent_program, pass_user_data=True)],
+            PROGRAM: [RegexHandler('^(썰전|무한도전|차이나는 클라스|라디오스타)$', torrent_program, pass_user_data=True)],
 
             DATE: [MessageHandler(Filters.text, torrent_date, pass_user_data=True)]
         },
