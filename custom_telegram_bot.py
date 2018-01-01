@@ -9,8 +9,6 @@ from top_ranked_word import *
 import get_alio_notification
 import make_epub_from_TED_subtitle
 import get_torrent_seed
-# from urllib.request import urlopen
-# import ssl
 import validators
 from ebooklib import epub
 from selenium import webdriver
@@ -231,77 +229,33 @@ def torrent_date(bot, update, user_data):
         update.message.reply_text("토렌트 파일을 찾지 못했습니다.")
         return ConversationHandler.END
 
-    update.message.reply_text("okay 오늘은 여기까지.")
-    return ConversationHandler.END
-    # for torrent_title in torrents.keys():
-    #     if re.search(r'720p-NEXT', torrent_title):
-    #         logger.info("title = %s" % torrent_title)
-    #         logger.info("target = %s" % torrents[torrent_title])
-    #
-    #         driver_torrent = webdriver.Firefox(executable_path="/usr/local/bin/geckodriver",
-    #                                            firefox_profile=profile)
-    #         driver_torrent.get(torrents[torrent_title])
-    #         logger.info("I am trying to connect to %s..." % torrents[torrent_title])
-    #
-    #         try:
-    #             driver_torrent.switch_to.alert.accept()
-    #             logger.info('There is an alert for redirection.')
-    #         except NoAlertPresentException:
-    #             pass
-    #
-    #         time.sleep(10)
-    #         logger.info("torrent url : %s" % driver_torrent.current_url)
-    #
-    #         try:
-    #             element = driver_torrent.find_element_by_xpath("//table[@id='file_table']/tbody/tr[3]/td/a")
-    #
-    #             logger.info(torrent_title)
-    #
-    #             if update.message.chat_id == MANAGER_ID:
-    #                 update.message.reply_text(driver_torrent.current_url)
-    #
-    #             element.click()
-    #             time.sleep(20)
-    #             found = 1
-    #             break
-    #         except:
-    #             logger.warning('There is no proper torrent link in the site.')
-    #             pass
-    #
-    #         driver_torrent.quit()
-    #
-    # display.stop()
+    title = None
+    url = None
+    for torrent_title in torrents.keys():
+        if re.search(r'720p-NEXT', torrent_title):
+            title = torrent_title
+            url = torrents[torrent_title]
+            logger.info(title + ' : ' + url)
+            break
 
-    # if found:
-    #     try:
-    #         os.remove(DOWN_DIR + '/*.torrent')
-    #     except FileNotFoundError:
-    #         pass
-    #
-    #     new_file_name = DOWN_DIR + '/' + program_name + selected_date + '.torrent'
-    #
-    #     for torrent_file in glob.glob(DOWN_DIR + '/*' + selected_date + '*.torrent'):
-    #         shutil.move(torrent_file, new_file_name)
-    #         break
-    #
-    #     bot.sendDocument(chat_id=update.message.chat_id, document=open(new_file_name, 'rb'))
-    #     update.message.reply_text('완료')
-    #     logger.info('The torrent file is sent to %s' % user.first_name)
-    #
-    #     if update.message.chat_id == MANAGER_ID or update.message.chat_id == MANAGER2_ID:
-    #         ssh = paramiko.SSHClient()
-    #         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    #         ssh.connect(REMOTE_HOST, username=REMOTE_USER, key_filename=RSA_KEY_LOCATION)
-    #         sftp = ssh.open_sftp()
-    #         sftp.put(new_file_name, REMOTE_DIR + '/' + program_name + selected_date + '.torrent')
-    #         sftp.close()
-    #         ssh.close()
-    #         logger.info('Torrent file is sent to Kodi.')
-    #
-    #     os.remove(new_file_name)
-    # else:
-    #     logger.warning('The proper torrent seed is not found.')
-    #     update.message.reply_text("토렌트 파일을 찾지 못했습니다.")
+    if url == None:
+        logger.warning('There is no proper url.')
+        update.message.reply_text("토렌트 파일을 찾지 못했습니다.")
+        return ConversationHandler.END
+
+    file_name = get_torrent_seed.get_torrent_seed_file(url)
+    if file_name == None:
+        logger.warning('There is no proper torrent file.')
+        update.message.reply_text("토렌트 파일을 찾지 못했습니다.")
+        return ConversationHandler.END
+
+    logger.info('Local file name : ' + file_name)
+    bot.sendDocument(chat_id=update.message.chat_id, document=open(new_file_name, 'rb'))
+    update.message.reply_text('완료')
+    logger.info('The torrent file is sent to %s' % user.first_name)
+
+    if update.message.chat_id == MANAGER_ID or update.message.chat_id == MANAGER2_ID:
+        send_file_to_remote(REMOTE_HOST, REMOTE_USER, RSA_KEY_LOCATION, file_name)
 
     return ConversationHandler.END
 

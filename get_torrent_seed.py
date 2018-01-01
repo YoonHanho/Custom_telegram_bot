@@ -4,8 +4,7 @@ import re
 import time
 import logging
 import os
-# import paramiko
-# import shutil
+import paramiko
 import glob
 import urllib.parse
 from urllib.parse import urljoin
@@ -149,7 +148,7 @@ def get_torrent_seed_file(url):
     element.click()
 
     files = None
-    timeout = 10
+    timeout = 100
     while not files and timeout > 0:
         files = glob.glob(DOWN_DIR + '/*.torrent')
         time.sleep(1)
@@ -193,8 +192,12 @@ def main():
             break
 
     file_name = get_torrent_seed_file('https://torrentkim12.com/torrent_variety/852373.html')
+    if file_name == None:
+        logger.warning('Please check the downloading of torrent file.')
+        return
+
     logger.info('Local file name : ' + file_name)
-    
+
     send_file_to_remote(REMOTE_HOST, REMOTE_USER, RSA_KEY_LOCATION, file_name)
 
 
