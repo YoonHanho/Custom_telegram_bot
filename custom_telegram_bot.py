@@ -182,7 +182,7 @@ def torrent_start(bot, update):
     reply_keyboard = [['무한도전', '썰전', '차이나는 클라스', '라디오스타']]
 
     user = update.message.from_user
-    logger.info("%s(%s) started the bot." % (user.first_name, user.id))
+    logger.info("%s(%s) started the torrent job." % (user.first_name, user.id))
 
     update.message.reply_text("토렌트 파일을 다운 받아 드립니다. 프로그램을 선택해주세요.",
                               reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
@@ -216,7 +216,7 @@ def torrent_date(bot, update, user_data):
 
     update.message.reply_text("선택하신 날짜는 " + str(date_in_format) + "입니다.")
     update.message.reply_text("잠시만 기다려주세요. 몇 분 정도 걸릴 수 있습니다.")
-    logger.info("Selected date : %s" % date_in_format)
+    logger.info("Selected date : %s" % date_/in_format)
 
     display = Display(visible=0, size=(800, 600))
     display.start()
@@ -259,10 +259,11 @@ def torrent_date(bot, update, user_data):
 
 
 def log(bot, update):
+    logger.info(update.message.chat_id + 'wants the log.')
     if update.message.chat_id != MANAGER_ID:
         update.message.reply_text('이 command는 관리자를 위한 것으로 user에게는 허용되지 않습니다.')
 
-    bot.sendDocument(chat_id=update.message.chat_id,document=open(LOG_DIR + '/log.txt','rb'))
+    bot.sendDocument(chat_id=update.message.chat_id, document=open(LOG_DIR + r'/log.txt', 'rb'))
 
 
 def main():
