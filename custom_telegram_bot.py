@@ -221,9 +221,6 @@ def torrent_date(bot, update, user_data):
     display = Display(visible=0, size=(800, 600))
     display.start()
 
-    profile = get_firefox_profile_for_autodownload()
-    found = 0
-
     torrents = get_torrent_seed.get_seedsite_by_torrentkim(user_data['program_name'], user_data['date'])
     if torrents == None:
         logger.warning('The proper torrent seed is not found.')
@@ -256,7 +253,7 @@ def torrent_date(bot, update, user_data):
     logger.info('The torrent file is sent to %s' % user.first_name)
 
     if update.message.chat_id == MANAGER_ID or update.message.chat_id == MANAGER2_ID:
-        send_file_to_remote(REMOTE_HOST, REMOTE_USER, RSA_KEY_LOCATION, file_name)
+        get_torrent_seed.send_file_to_remote(REMOTE_HOST, REMOTE_USER, RSA_KEY_LOCATION, file_name)
 
     return ConversationHandler.END
 
