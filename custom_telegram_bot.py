@@ -272,7 +272,7 @@ def main():
     # Create the EventHandler and pass it your bot's token.
     updater = Updater(TOKEN)
     j = updater.job_queue
-    job_minute = j.run_repeating(callback_minute, interval=604800, first=0)
+    job_minute = j.run_repeating(job, interval=604800, first=0)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
