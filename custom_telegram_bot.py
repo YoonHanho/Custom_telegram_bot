@@ -270,13 +270,15 @@ def log(bot, update):
 def main():
     # Create the EventHandler and pass it your bot's token.
     updater = Updater(TOKEN)
+    j = updater.job_queue
+    job_minute = j.run_repeating(callback_minute, interval=604800, first=0)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('first', first))
-    dp.add_handler(CommandHandler('job', job))
+    #dp.add_handler(CommandHandler('job', job))
     dp.add_handler(CommandHandler('log', log))
 
     # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
