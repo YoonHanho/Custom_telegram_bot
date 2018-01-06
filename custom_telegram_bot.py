@@ -58,9 +58,19 @@ def first(bot, update):
             bot.sendMessage(chat_id=MANAGER_ID, text = "실시간 검색어 봇에서 " + portal_site + "에 대한 업데이트가 필요합니다.")
 
 
+def job_report(bot, update):
+    job_list = get_alio_notification.get_alio_notification()
+
+    for item in job_list:
+        string = ""
+        for key in item.keys():
+            string = string + key + ' : ' + item[key] + "\n"
+        bot.sendMessage(chat_id=MANAGER_ID, text=string)
+
+
 def job(bot, update):
-    #user = update.message.from_user
-    #logger.info("%s(%s) wants the job" % (user.first_name, user.id))
+    user = update.message.from_user
+    logger.info("%s(%s) wants the job" % (user.first_name, user.id))
 
     job_list = get_alio_notification.get_alio_notification()
 
@@ -68,9 +78,7 @@ def job(bot, update):
         string = ""
         for key in item.keys():
             string = string + key + ' : ' + item[key] + "\n"
-        #update.message.reply_text(string)
-        bot.sendMessage(chat_id=MANAGER_ID, text=string)
-
+        update.message.reply_text(string)
 
 
 def sub(bot, update):
@@ -272,14 +280,14 @@ def main():
     # Create the EventHandler and pass it your bot's token.
     updater = Updater(TOKEN)
     j = updater.job_queue
-    job_minute = j.run_repeating(job, interval=604800, first=0)
+    job_minute = j.run_once(job_report, 14400)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('first', first))
-    #dp.add_handler(CommandHandler('job', job))
+    dp.add_handler(CommandHandler('job', job))
     dp.add_handler(CommandHandler('log', log))
 
     # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
