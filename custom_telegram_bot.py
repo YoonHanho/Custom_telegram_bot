@@ -59,8 +59,8 @@ def first(bot, update):
 
 
 def job(bot, update):
-    user = update.message.from_user
-    logger.info("%s(%s) wants the job" % (user.first_name, user.id))
+    #user = update.message.from_user
+    #logger.info("%s(%s) wants the job" % (user.first_name, user.id))
 
     job_list = get_alio_notification.get_alio_notification()
 
@@ -68,7 +68,8 @@ def job(bot, update):
         string = ""
         for key in item.keys():
             string = string + key + ' : ' + item[key] + "\n"
-        update.message.reply_text(string)
+        #update.message.reply_text(string)
+        bot.sendMessage(chat_id=MANAGER_ID, text=string)
 
 
 
