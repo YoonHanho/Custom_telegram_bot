@@ -225,7 +225,7 @@ def torrent_date(bot, update, user_data):
 
     update.message.reply_text("선택하신 날짜는 " + str(date_in_format) + "입니다.")
     update.message.reply_text("잠시만 기다려주세요. 몇 분 정도 걸릴 수 있습니다.")
-    logger.info("Selected date : %s" % date_/in_format)
+    logger.info("Selected date : %s" % date_in_format)
 
     display = Display(visible=0, size=(800, 600))
     display.start()
