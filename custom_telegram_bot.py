@@ -7,6 +7,7 @@ from TOKEN import *
 import urllib.parse
 from top_ranked_word import *
 import get_alio_notification
+import get_apt_notification
 import make_epub_from_TED_subtitle
 import get_torrent_seed
 import validators
@@ -75,6 +76,29 @@ def job(bot, update):
     job_list = get_alio_notification.get_alio_notification()
 
     for item in job_list:
+        string = ""
+        for key in item.keys():
+            string = string + key + ' : ' + item[key] + "\n"
+        update.message.reply_text(string)
+
+
+def apt_report(bot, update):
+    apt_list = get_apt_notification.get_apt_notification()
+
+    for item in apt_list:
+        string = ""
+        for key in item.keys():
+            string = string + key + ' : ' + item[key] + "\n"
+        bot.sendMessage(chat_id=MANAGER_ID, text=string)
+
+
+def apt(bot, update):
+    user = update.message.from_user
+    logger.info("%s(%s) wants the apt information" % (user.first_name, user.id))
+
+    apt_list = get_apt_notification.get_apt_notification()
+
+    for item in apt_list:
         string = ""
         for key in item.keys():
             string = string + key + ' : ' + item[key] + "\n"
@@ -281,6 +305,7 @@ def main():
     updater = Updater(TOKEN)
     j = updater.job_queue
     job_minute = j.run_once(job_report, 14400)
+    apt_minute = j.run_once(apt_report, 14400)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
@@ -288,6 +313,7 @@ def main():
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('first', first))
     dp.add_handler(CommandHandler('job', job))
+    dp.add_handler(CommandHandler('apt', apt))
     dp.add_handler(CommandHandler('log', log))
 
     # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
