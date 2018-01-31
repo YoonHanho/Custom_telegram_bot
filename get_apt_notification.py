@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from bs4 import BeautifulSoup
