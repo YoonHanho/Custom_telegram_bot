@@ -44,7 +44,7 @@ def get_apt_notification():
     return apartmentList
 
 if __name__ == '__main__':
-    apartmentList = get_alio_notification()
+    apartmentList = get_apt_notification()
     for item in apartmentList:
         for key in item.keys():
             print(key + ' : ' + item[key])
