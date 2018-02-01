@@ -86,6 +86,8 @@ def apt_report(bot, update):
     apt_list = get_apt_notification.get_apt_notification()
 
     for item in apt_list:
+        if item['지역'] != '서울' or item['지역'] != '경기':
+            continue
         string = ""
         for key in item.keys():
             string = string + key + ' : ' + item[key] + "\n"
@@ -99,6 +101,8 @@ def apt(bot, update):
     apt_list = get_apt_notification.get_apt_notification()
 
     for item in apt_list:
+        if item['지역'] != '서울' or item['지역'] != '경기':
+            continue
         string = ""
         for key in item.keys():
             string = string + key + ' : ' + item[key] + "\n"
