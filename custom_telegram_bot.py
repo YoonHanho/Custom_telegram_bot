@@ -84,6 +84,7 @@ def job(bot, update):
 
 def apt_report(bot, update):
     apt_list = get_apt_notification.get_apt_notification()
+    count = 0
 
     for item in apt_list:
         if item['지역'] != '서울' or item['지역'] != '경기':
@@ -92,6 +93,10 @@ def apt_report(bot, update):
         for key in item.keys():
             string = string + key + ' : ' + item[key] + "\n"
         bot.sendMessage(chat_id=MANAGER_ID, text=string)
+        count = count + 1
+
+    if count == 0:
+        bot.sendMessage(chat_id=MANAGER_ID, text='분양 정보가 없습니다.')
 
 
 def apt(bot, update):
@@ -99,6 +104,7 @@ def apt(bot, update):
     logger.info("%s(%s) wants the apt information" % (user.first_name, user.id))
 
     apt_list = get_apt_notification.get_apt_notification()
+    count = 0
 
     for item in apt_list:
         if item['지역'] != '서울' or item['지역'] != '경기':
@@ -107,6 +113,10 @@ def apt(bot, update):
         for key in item.keys():
             string = string + key + ' : ' + item[key] + "\n"
         update.message.reply_text(string)
+        count = count + 1
+
+    if count == 0:
+        update.message.reply_text('분양 정보가 없습니다.')
 
 
 def sub(bot, update):
