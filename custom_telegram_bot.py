@@ -313,7 +313,7 @@ def log(bot, update):
     if update.message.chat_id != MANAGER_ID:
         update.message.reply_text('이 command는 관리자를 위한 것으로 user에게는 허용되지 않습니다.')
 
-    bot.sendDocument(chat_id=update.message.chat_id, document=open(LOG_DIR + r'/log.txt', 'r'))
+    bot.sendDocument(chat_id=update.message.chat_id, document=open(LOG_DIR + r'/log.txt', 'rb'))
 
 
 def log_short(bot, update):
@@ -322,7 +322,7 @@ def log_short(bot, update):
     if update.message.chat_id != MANAGER_ID:
         update.message.reply_text('이 command는 관리자를 위한 것으로 user에게는 허용되지 않습니다.')
 
-    lines = tailer.tail(open(LOG_DIR + r'/log.txt', 'r'), 10)
+    lines = tailer.tail(open(LOG_DIR + r'/log.txt', 'rb'), 10)
     string = ""
     for line in lines:
         string = string + line + "\n"
