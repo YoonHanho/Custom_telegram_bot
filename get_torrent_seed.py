@@ -149,8 +149,8 @@ def get_torrent_seed_file(url):
 
     files = None
     timeout = 100
-    while not files and timeout > 0:
-        files = glob.glob(DOWN_DIR + '/*.torrent')
+    while files and timeout > 0:
+        files = glob.glob(DOWN_DIR + '/*.torrent.part')
         time.sleep(1)
         timeout = timeout - 1
 
