@@ -88,14 +88,13 @@ def apt_report(bot, update):
     user_list = [MANAGER_ID, MANAGER2_ID]
 
     for item in apt_list:
-        if item['지역'] != '서울' or item['지역'] != '경기':
-            continue
-        string = ""
-        for key in item.keys():
-            string = string + key + ' : ' + item[key] + "\n"
-        for user in user_list:
-            bot.sendMessage(chat_id=user, text=string)
-        count = count + 1
+        if item['지역'] == '서울' or item['지역'] == '경기':
+            string = ""
+            for key in item.keys():
+                string = string + key + ' : ' + item[key] + "\n"
+            for user in user_list:
+                bot.sendMessage(chat_id=user, text=string)
+            count = count + 1
 
     if count == 0:
         for user in user_list:
@@ -110,13 +109,12 @@ def apt(bot, update):
     count = 0
 
     for item in apt_list:
-        if item['지역'] != '서울' or item['지역'] != '경기':
-            continue
-        string = ""
-        for key in item.keys():
-            string = string + key + ' : ' + item[key] + "\n"
-        update.message.reply_text(string)
-        count = count + 1
+        if item['지역'] == '서울' or item['지역'] == '경기':
+            string = ""
+            for key in item.keys():
+                string = string + key + ' : ' + item[key] + "\n"
+            update.message.reply_text(string)
+            count = count + 1
 
     if count == 0:
         update.message.reply_text('분양 정보가 없습니다.')
