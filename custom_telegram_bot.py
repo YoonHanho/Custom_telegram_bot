@@ -21,6 +21,7 @@ from dateutil.parser import parse
 import datetime
 from pyvirtualdisplay import Display
 import re
+import tailer
 
 
 # Enable logging
@@ -312,7 +313,20 @@ def log(bot, update):
     if update.message.chat_id != MANAGER_ID:
         update.message.reply_text('이 command는 관리자를 위한 것으로 user에게는 허용되지 않습니다.')
 
-    bot.sendDocument(chat_id=update.message.chat_id, document=open(LOG_DIR + r'/log.txt', 'rb'))
+    bot.sendDocument(chat_id=update.message.chat_id, document=open(LOG_DIR + r'/log.txt', 'r'))
+
+
+def log_short(bot, update):
+    user = update.message.from_user
+    logger.info("%s(%s) wants the short log." % (user.first_name, user.id))
+    if update.message.chat_id != MANAGER_ID:
+        update.message.reply_text('이 command는 관리자를 위한 것으로 user에게는 허용되지 않습니다.')
+
+    lines = tailer.tail(open(LOG_DIR + r'/log.txt', 'r'), 10)
+    string = ""
+    for line in lines:
+        string = string + line + "\n"
+    update.message.reply_text(string)
 
 
 def main():
@@ -330,6 +344,7 @@ def main():
     dp.add_handler(CommandHandler('job', job))
     dp.add_handler(CommandHandler('apt', apt))
     dp.add_handler(CommandHandler('log', log))
+    dp.add_handler(CommandHandler('log_short', log_short))
 
     # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
     sub_conv_handler = ConversationHandler(
